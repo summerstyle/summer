@@ -41,6 +41,9 @@ function SummerHtmlImageMapCreator() {
 			}
 			return str;
 		},
+		id : function (str) {
+			return document.getElementById(str);
+		},
         hide : function(node) {
             node.style.display = 'none';
 			
@@ -77,47 +80,56 @@ function SummerHtmlImageMapCreator() {
 			return this;
 		},
 		addClass : function(node, str) {
-			// node.className.baseVal for SVG-elements and
+			// node.className.baseVal for SVG-elements
+			// or
 			// node.className for HTML-elements
 			var is_svg = node.className.baseVal !== undefined ? true : false,
-				arr = is_svg ? node.className.baseVal.split(' ') : node.className.split(' ');
+				arr = is_svg ? node.className.baseVal.split(' ') : node.className.split(' '),
+				isset = false;
 			
 			utils.foreach(arr, function(x) {
-				if(x == str) {
-					return;
+				if(x === str) {
+					isset = true;
 				}
 			});
-			arr.push(str);
 			
-			is_svg ? node.className.baseVal = arr.join(' ') : node.className = arr.join(' ');
+			if (!isset) {
+				arr.push(str);
+				is_svg ? node.className.baseVal = arr.join(' ') : node.className = arr.join(' ');
+			}
 			
 			return node;
 		},
 		removeClass : function(node, str) {
 			var is_svg = node.className.baseVal !== undefined ? true : false,
-				arr = is_svg ? node.className.baseVal.split(' ') : node.className.split(' ');
+				arr = is_svg ? node.className.baseVal.split(' ') : node.className.split(' '),
+				isset = false;
 			
 			utils.foreach(arr, function(x, i) {
 				if(x === str) {
+					isset = true;
 					arr.splice(i--, 1);
 				}
 			});
-			is_svg ? node.className.baseVal = arr.join(' ') : node.className = arr.join(' ');
+			
+			if (isset) {
+				is_svg ? node.className.baseVal = arr.join(' ') : node.className = arr.join(' ');
+			}
 			
 			return node;
 		},
 		hasClass : function(node, str) {
 			var is_svg = node.className.baseVal !== undefined ? true : false,
 				arr = is_svg ? node.className.baseVal.split(' ') : node.className.split(' '),
-				val = false;
+				isset = false;
 				
 			utils.foreach(arr, function(x) {
 				if(x === str) {
-					val = true;
+					isset = true;
 				}
 			});
 			
-			return val;
+			return isset;
 		},
 		extend : function(obj, options) {
 			var target = {};
@@ -139,12 +151,12 @@ function SummerHtmlImageMapCreator() {
 	/* Main object */
 	var app = (function() {
 		var body = document.getElementsByTagName('body')[0],
-			wrapper = document.getElementById('wrapper'),
-			svg = document.getElementById('svg'),
-			img = document.getElementById('img'),
-			container = document.getElementById('image'),
-			about = document.getElementById('about'),
-			coords_info = document.getElementById('coords'),
+			wrapper = utils.id('wrapper'),
+			svg = utils.id('svg'),
+			img = utils.id('img'),
+			container = utils.id('image'),
+			about = utils.id('about'),
+			coords_info = utils.id('coords'),
 			offset = {x: 0, y: 0},
 			shape  =null,
 			is_draw = false,
@@ -531,8 +543,8 @@ function SummerHtmlImageMapCreator() {
 	
 	/* Help block */
 	var help = (function() {
-		var block = document.getElementById('help'),
-			overlay = document.getElementById('overlay'),
+		var block = utils.id('help'),
+			overlay = utils.id('overlay'),
 			close_button = block.querySelector('.close_button');
 			
 		function hide() {
@@ -557,8 +569,8 @@ function SummerHtmlImageMapCreator() {
 	
 	/* For html code of created map */
 	var code = (function(){
-		var block = document.getElementById('code'),
-			content = document.getElementById('code_content'),
+		var block = utils.id('code'),
+			content = utils.id('code_content'),
 			close_button = block.querySelector('.close_button');
 			
 		close_button.addEventListener('click', function(e) {
@@ -580,12 +592,12 @@ function SummerHtmlImageMapCreator() {
 	
     /* Edit selected area info */
 	var info = (function() {
-		var form = document.getElementById('edit_details'),
+		var form = utils.id('edit_details'),
 			header = form.querySelector('h5'),
-			href_attr = document.getElementById('href_attr'),
-			alt_attr = document.getElementById('alt_attr'),
-			title_attr = document.getElementById('title_attr'),
-			save_button = document.getElementById('save'),
+			href_attr = utils.id('href_attr'),
+			alt_attr = utils.id('alt_attr'),
+			title_attr = utils.id('title_attr'),
+			save_button = utils.id('save'),
 			close_button = form.querySelector('.close_button'),
 			sections = form.querySelectorAll('p'),
 			obj,
@@ -683,20 +695,20 @@ function SummerHtmlImageMapCreator() {
 
     /* Get image form */
     var get_image = (function() {
-		var block = document.getElementById('get_image_wrapper'),
-			loading_indicator = document.getElementById('loading'),
-			button = document.getElementById('button'),
+		var block = utils.id('get_image_wrapper'),
+			loading_indicator = utils.id('loading'),
+			button = utils.id('button'),
 			filename = null,
 			last_changed = null;
 			
 		// Drag'n'drop - the first way to loading an image
 		var drag_n_drop = (function() {
-			var dropzone = document.getElementById('dropzone'),
+			var dropzone = utils.id('dropzone'),
 				dropzone_clear_button = dropzone.querySelector('.clear_button'),
-				sm_img = document.getElementById('sm_img');
+				sm_img = utils.id('sm_img');
 			
 			if (!utils.supportFileReader) { // For IE9
-				utils.hide(document.getElementById('file_reader_support'));
+				utils.hide(utils.id('file_reader_support'));
 			};
 			
 			function testFile(type) {
@@ -775,7 +787,7 @@ function SummerHtmlImageMapCreator() {
 		
 		/* Set a url - the second way to loading an image */
 		var url_input = (function() {
-			var url = document.getElementById('url'),
+			var url = utils.id('url'),
 				url_clear_button = url.parentNode.querySelector('.clear_button');
 			
 			function testUrl(str) {
@@ -905,15 +917,16 @@ function SummerHtmlImageMapCreator() {
     
     /* Buttons and actions */
 	var buttons = (function() {
-		var all = document.getElementById('nav').getElementsByTagName('li'),
-			rectangle = document.getElementById('rect'),
-			circle = document.getElementById('circle'),
-			polygon = document.getElementById('polygon'),
-			edit = document.getElementById('edit'),
-			clear = document.getElementById('clear'),
-			to_html = document.getElementById('to_html'),
-			preview = document.getElementById('preview'),
-			new_image = document.getElementById('new_image');
+		var all = utils.id('nav').getElementsByTagName('li'),
+			rectangle = utils.id('rect'),
+			circle = utils.id('circle'),
+			polygon = utils.id('polygon'),
+			edit = utils.id('edit'),
+			clear = utils.id('clear'),
+			to_html = utils.id('to_html'),
+			preview = utils.id('preview'),
+			new_image = utils.id('new_image'),
+			show_help = utils.id('show_help');
 		
 		function deselectAll() {
 			utils.foreach(all, function(x) {
@@ -1007,6 +1020,10 @@ function SummerHtmlImageMapCreator() {
 			e.preventDefault();
 		};
 		
+		function onShowHelpButtonClick() {
+			help.show();
+		};
+		
 		rectangle.addEventListener('click', onShapeButtonClick, false);
 		circle.addEventListener('click', onShapeButtonClick, false);
 		polygon.addEventListener('click', onShapeButtonClick, false);
@@ -1015,7 +1032,7 @@ function SummerHtmlImageMapCreator() {
 		preview.addEventListener('click', onPreviewButtonClick, false);
 		edit.addEventListener('click', onEditButtonClick, false);
 		new_image.addEventListener('click', onNewImageButtonClick, false);
-		
+		show_help.addEventListener('click', onShowHelpButtonClick, false);
 	})();
 
 	
