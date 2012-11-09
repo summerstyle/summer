@@ -48,7 +48,7 @@ a:link, a:visited {
     line-height: 0;
     height: 0;
 }
-noscript {
+#noscript {
     text-align: center;
     display: block;
     font-size: 20px;
