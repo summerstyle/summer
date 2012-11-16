@@ -1790,11 +1790,11 @@ function SummerHtmlImageMapCreator() {
 				_n_f.g.replaceChild(_n_f.polygon, _n_f.polyline);
 				_n_f.setCoords(_n_f.params).deselect();
 				delete(_n_f.polyline);
+				
+				app.removeAllEvents()
+					.setIsDraw(false)
+					.resetNewArea();
 			}
-			
-			app.removeAllEvents()
-               .setIsDraw(false)
-			   .resetNewArea();
         };
 		e.stopPropagation();
     };
