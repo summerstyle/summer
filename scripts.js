@@ -958,6 +958,7 @@ function SummerHtmlImageMapCreator() {
 			   .hidePreview();
 			info.unload();
 			selectOne(this);
+			
 			e.preventDefault();
 		};
 		
@@ -971,6 +972,7 @@ function SummerHtmlImageMapCreator() {
 					.hidePreview();
 				deselectAll();
 			}
+			
 			e.preventDefault();
 		};
 		
@@ -978,6 +980,7 @@ function SummerHtmlImageMapCreator() {
 			// Generate html code only
 			info.unload();
             code.print();
+			
 			e.preventDefault();
 		};
 		
@@ -993,6 +996,7 @@ function SummerHtmlImageMapCreator() {
                    .preview();
 				selectOne(this);
             }
+			
 			e.preventDefault();
 		};
 		
@@ -1030,8 +1034,10 @@ function SummerHtmlImageMapCreator() {
 			e.preventDefault();
 		};
 		
-		function onShowHelpButtonClick() {
+		function onShowHelpButtonClick(e) {
 			help.show();
+			
+			e.preventDefault();
 		};
 		
 		rectangle.addEventListener('click', onShapeButtonClick, false);
