@@ -167,7 +167,17 @@ function SummerHtmlImageMapCreator() {
 			edit_type,
 			events = [],
 			map,
-			filename;
+			filename,
+			KEYS = {
+				F1     : 112,
+				ESC    : 27,
+				TOP    : 28,
+				BOTTOM : 40,
+				LEFT   : 37,
+				RIGHT  : 39,
+				DELETE : 46,
+				I      : 73
+			};
 		
 		function recalcOffsetValues() {
 			offset.x = utils.offsetX(container);
@@ -296,11 +306,11 @@ function SummerHtmlImageMapCreator() {
 		/* Add keydown event for document */
 		function onDocumentKeyDown(e) {
 			switch (e.keyCode) {
-			case 112: /* F1 key */
+			case KEYS.F1: /* F1 key */
 				help.show();
 				e.preventDefault();
 				break;
-			case 27: /* ESC key */
+			case KEYS.ESC: /* ESC key */
 				help.hide();
 				if (is_draw) {
 					is_draw = false;
@@ -312,38 +322,38 @@ function SummerHtmlImageMapCreator() {
 					app.removeAllEvents();
 				};
 				break;
-			case 38: /* Top arrow key */
+			case KEYS.TOP: /* Top arrow key */
 				if (mode === 'editing' && selected_area) {
 					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](0, -1)));
 					e.preventDefault();
 				}
 				break;
-			case 40: /* Bottom arrow key */
+			case KEYS.BOTTOM: /* Bottom arrow key */
 				if (mode === 'editing' && selected_area) {
 					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](0, 1)));
 					e.preventDefault();
 				}
 				break;
-			case 37: /* Left arrow key */
+			case KEYS.LEFT: /* Left arrow key */
 				if (mode === 'editing' && selected_area) {
 					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](-1, 0)));
 					e.preventDefault();
 				}
 				break;
-			case 39: /* Right arrow key */
+			case KEYS.RIGHT: /* Right arrow key */
 				if (mode === 'editing' && selected_area) {
 					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](1, 0)));
 					e.preventDefault();
 				}
 				break;
-			case 46: /* DELETE key */
+			case KEYS.DELETE: /* DELETE key */
 				if (mode === 'editing' && selected_area) {
 					app.removeObject(selected_area);
 					selected_area = null;
 					info.unload();
 				}
 				break;
-			case 73: /* i (edit info) key */
+			case KEYS.I: /* i (edit info) key */
 				if (mode === 'editing' && selected_area) {
 					var params = selected_area.params,
 						x = params.x || params.cx || params[0],
@@ -948,6 +958,7 @@ function SummerHtmlImageMapCreator() {
 			   .hidePreview();
 			info.unload();
 			selectOne(this);
+			
 			e.preventDefault();
 		};
 		
@@ -961,6 +972,7 @@ function SummerHtmlImageMapCreator() {
 					.hidePreview();
 				deselectAll();
 			}
+			
 			e.preventDefault();
 		};
 		
@@ -968,6 +980,7 @@ function SummerHtmlImageMapCreator() {
 			// Generate html code only
 			info.unload();
             code.print();
+			
 			e.preventDefault();
 		};
 		
@@ -983,6 +996,7 @@ function SummerHtmlImageMapCreator() {
                    .preview();
 				selectOne(this);
             }
+			
 			e.preventDefault();
 		};
 		
@@ -1020,8 +1034,10 @@ function SummerHtmlImageMapCreator() {
 			e.preventDefault();
 		};
 		
-		function onShowHelpButtonClick() {
+		function onShowHelpButtonClick(e) {
 			help.show();
+			
+			e.preventDefault();
 		};
 		
 		rectangle.addEventListener('click', onShapeButtonClick, false);
