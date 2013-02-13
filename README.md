@@ -2,6 +2,8 @@ Summer html image map creator
 =============================
 [http://github.com/summerstyle/summer] (http://github.com/summerstyle/summer)
 
+Released under the GPL3 (GPL3.txt)
+
 Loading an image
 ----------------
 `F5` — reload the page and display the form for loading image again
