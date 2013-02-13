@@ -3,7 +3,7 @@
  * http://github.com/summerstyle/summer
  *
  * Copyright 2012 Vera Lobacheva (summerstyle.ru)
- * Released under the MIT license (MIT-LICENSE.txt)
+ * Released under the GPL3 (GPL3.txt)
  *
  * Thu Sep 27 2012 10:54:28 GMT+0400
  */
