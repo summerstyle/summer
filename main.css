@@ -2,10 +2,10 @@
  * Summer html image map creator
  * http://github.com/summerstyle/summer
  *
- * Copyright 2012 Vera Lobacheva (summerstyle.ru)
+ * Copyright 2013 Vera Lobacheva (summerstyle.ru)
  * Released under the GPL3 (GPL3.txt)
  *
- * Thu Sep 27 2012 10:54:28 GMT+0400
+ * Thu May 15 2013 15:15:27 GMT+0400
  */
 
 html, body, div, span, applet, object, h1, h2, h3, h4, h5, h6, p, a, em, img, strong, ol, ul, li, dl, dd, dt, form, label, input, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video  {
@@ -145,6 +145,9 @@ a:link, a:visited {
     margin: 0 auto;
     border-radius: 3px;
     box-shadow: rgba(0,0,0,0.2) 0 0 2px 2px;
+}
+.draw#image {
+    cursor: crosshair;
 }
 #image map {
     position: absolute;
@@ -427,7 +430,7 @@ a:link, a:visited {
 #svg rect.with_href {
     fill: rgba(0,0,0,0.3);
 }
-.edit#svg rect:hover {
+.edit > #svg rect:hover {
     fill: rgba(50,200,50,0.3);
 }
 #svg rect.active {
@@ -441,7 +444,7 @@ a:link, a:visited {
 #svg circle.with_href {
     fill: rgba(0,0,0,0.3);
 }
-.edit#svg circle:hover {
+.edit > #svg circle:hover {
     fill: rgba(50,200,50,0.3);
 }
 #svg polyline, #svg polygon {
@@ -452,7 +455,7 @@ a:link, a:visited {
 #svg polygon.with_href {
     fill: rgba(0,0,0,0.3);
 }
-.edit#svg polygon:hover {
+.edit > #svg polygon:hover {
     fill: rgba(50,200,50,0.3);
 }
 #svg .selected {
@@ -466,33 +469,33 @@ a:link, a:visited {
 #svg rect.helper:hover {
     fill: #F00; 
 }
-.edit#svg rect, .edit#svg circle, .edit#svg polygon {
+.edit > #svg rect, .edit > #svg circle, .edit > #svg polygon {
     cursor: move;
 }
-.edit#svg .pointer {
+.edit > #svg .pointer {
     cursor: pointer;
 }
-.edit#svg .e-resize {
+.edit > #svg .e-resize {
     cursor: e-resize;
 }
-.edit#svg .ne-resize {
+.edit > #svg .ne-resize {
     cursor: ne-resize;
 }
-.edit#svg .nw-resize {
+.edit > #svg .nw-resize {
     cursor: nw-resize;
 }
-.edit#svg .n-resize {
+.edit > #svg .n-resize {
     cursor: n-resize;
 }
-.edit#svg .se-resize {
+.edit > #svg .se-resize {
     cursor: se-resize;
 }
-.edit#svg .sw-resize {
+.edit > #svg .sw-resize {
     cursor: sw-resize;
 }
-.edit#svg .s-resize {
+.edit > #svg .s-resize {
     cursor: s-resize;
 }
-.edit#svg .w-resize {
+.edit > #svg .w-resize {
     cursor: w-resize;
 }

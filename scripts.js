@@ -2,10 +2,10 @@
  * Summer html image map creator
  * http://github.com/summerstyle/summer
  *
- * Copyright 2012 Vera Lobacheva (summerstyle.ru)
+ * Copyright 2013 Vera Lobacheva (summerstyle.ru)
  * Released under the GPL3 (GPL3.txt)
  *
- * Thu Sep 27 2012 10:54:28 GMT+0400
+ * Thu May 15 2013 15:15:27 GMT+0400
  */
 
 "use strict";
@@ -98,7 +98,7 @@ function SummerHtmlImageMapCreator() {
 				is_svg ? node.className.baseVal = arr.join(' ') : node.className = arr.join(' ');
 			}
 			
-			return node;
+			return this;
 		},
 		removeClass : function(node, str) {
 			var is_svg = node.className.baseVal !== undefined ? true : false,
@@ -116,7 +116,7 @@ function SummerHtmlImageMapCreator() {
 				is_svg ? node.className.baseVal = arr.join(' ') : node.className = arr.join(' ');
 			}
 			
-			return node;
+			return this;
 		},
 		hasClass : function(node, str) {
 			var is_svg = node.className.baseVal !== undefined ? true : false,
@@ -510,12 +510,19 @@ function SummerHtmlImageMapCreator() {
 				filename = str;
 				return this;
 			},
-			addEditClass : function() {
-				utils.addClass(svg, 'edit');
+			setEditClass : function() {
+				utils.removeClass(container, 'draw')
+					 .addClass(container, 'edit');
 				return this;
 			},
-			removeEditClass : function() {
-				utils.removeClass(svg, 'edit');
+			setDrawClass : function() {
+				utils.removeClass(container, 'edit')
+					  .addClass(container, 'draw');
+				return this;
+			},
+			setDefaultClass : function() {
+				utils.removeClass(container, 'edit')
+					 .removeClass(container, 'draw');
 				return this;
 			},
 			addEvent : function(target, eventType, func) {
@@ -952,7 +959,7 @@ function SummerHtmlImageMapCreator() {
 		function onShapeButtonClick(e) {
 			// shape = rect || circle || polygon
 			app.setMode('drawing')
-			   .removeEditClass()
+			   .setDrawClass()
 			   .setShape(this.id)
 			   .deselectAll()
 			   .hidePreview();
@@ -966,7 +973,7 @@ function SummerHtmlImageMapCreator() {
 			// Clear all
 			if (confirm('Clear all?')) {
 				app.setMode(null)
-					.removeEditClass()
+					.setDefaultClass()
 					.setShape(null)
 					.clear()
 					.hidePreview();
@@ -992,7 +999,7 @@ function SummerHtmlImageMapCreator() {
             } else {
 				app.deselectAll()
 				   .setMode('preview')
-				   .removeEditClass()
+				   .setDefaultClass()
                    .preview();
 				selectOne(this);
             }
@@ -1003,14 +1010,14 @@ function SummerHtmlImageMapCreator() {
 		function onEditButtonClick(e) {
 			if (app.getMode() === 'editing') {
 				app.setMode(null)
-				   .removeEditClass()
+				   .setDefaultClass()
 				   .deselectAll();
                 deselectAll();
                 utils.show(svg);
             } else {
 				app.setShape(null)
 				   .setMode('editing')
-				   .addEditClass();
+				   .setEditClass();
 				selectOne(this);
 			}
 			app.hidePreview();
@@ -1021,7 +1028,7 @@ function SummerHtmlImageMapCreator() {
 			// New image - clear all and back to loading image screen
 			if(confirm('Discard all changes?')) {
 				app.setMode(null)
-				   .removeEditClass()
+				   .setDefaultClass()
 				   .setShape(null)
 				   .setIsDraw(false)
 				   .clear()
