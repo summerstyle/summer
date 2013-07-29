@@ -165,7 +165,7 @@ function SummerHtmlImageMapCreator() {
 			KEYS = {
 				F1     : 112,
 				ESC    : 27,
-				TOP    : 28,
+				TOP    : 38,
 				BOTTOM : 40,
 				LEFT   : 37,
 				RIGHT  : 39,
