@@ -412,6 +412,49 @@ a:link, a:visited {
     opacity: 0.5;
     display: none;
 }
+#from_html_wrapper {
+    display: none;
+    width: 500px;
+    border-radius: 5px;
+    background: rgba(0,0,0,0.9);
+    position: absolute;
+    top: 35px;
+    left: 50%;
+    margin-left: -250px;
+    z-index: 1002;
+    color: #FFF;
+}
+#from_html_wrapper .close_button {
+    background: #000 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAACbgAAAm4Bt/774AAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAABKSURBVAiZdc2xDYAwAAPBA0ViiQxKR6hgCMZjCSpTEAkavnxL7yHJgRPNQ0MtXS6Y+jBjlUSSLS9bEqMfSm/O2D+pq6Bi/ZxfqDfkbiIp0Zzd1AAAAABJRU5ErkJggg==) 50% 50% no-repeat;
+    box-shadow: 0 0 1px #EEE inset;
+    border-radius: 2px;
+}
+#from_html_form {
+    padding: 20px;
+}
+#from_html_form h5 {
+    margin-bottom: 15px;
+}
+#from_html_form label {
+    display: block;
+    font-size: 12px;
+}
+#from_html_form textarea {
+    border: 0px;
+    border-radius: 3px;
+    background: #FFF;
+    padding: 2px 5px;
+    margin-bottom: 5px;
+    width: 100%;
+    height: 100px;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.2) inset;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;    
+    font-family: monospace;
+    font-size: 11px;
+    line-height: 1.3;
+}
 
 /* CSS for SVG-elements */
 

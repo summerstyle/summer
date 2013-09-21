@@ -13,7 +13,7 @@
 function SummerHtmlImageMapCreator() {
 	
 	/* Utilities */
-    var utils = {
+	var utils = {
 		offsetX : function(node) {
 			var box = node.getBoundingClientRect(),
 				scroll = window.pageXOffset;
@@ -38,19 +38,19 @@ function SummerHtmlImageMapCreator() {
 		id : function (str) {
 			return document.getElementById(str);
 		},
-        hide : function(node) {
-            node.style.display = 'none';
+		hide : function(node) {
+			node.style.display = 'none';
 			
 			return this;
-        },
-        show : function(node) {
-            node.style.display = 'block';
+		},
+		show : function(node) {
+			node.style.display = 'block';
 			
 			return this;
-        },
-        encode : function(str) {
-            return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        },
+		},
+		encode : function(str) {
+			return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		},
 		foreach : function(arr, func) {
 			for(var i = 0, count = arr.length; i < count; i++) {
 				func(arr[i], i);
@@ -148,11 +148,12 @@ function SummerHtmlImageMapCreator() {
 			wrapper = utils.id('wrapper'),
 			svg = utils.id('svg'),
 			img = utils.id('img'),
+			img_src = null,
 			container = utils.id('image'),
 			about = utils.id('about'),
 			coords_info = utils.id('coords'),
 			offset = {x: 0, y: 0},
-			shape  =null,
+			shape = null,
 			is_draw = false,
 			mode = null, // drawing || editing || preview
 			objects = [],
@@ -165,12 +166,13 @@ function SummerHtmlImageMapCreator() {
 			KEYS = {
 				F1     : 112,
 				ESC    : 27,
-				TOP    : 28,
+				TOP    : 38,
 				BOTTOM : 40,
 				LEFT   : 37,
 				RIGHT  : 39,
 				DELETE : 46,
-				I      : 73
+				I      : 73,
+				S      : 83
 			};
 		
 		function recalcOffsetValues() {
@@ -303,7 +305,9 @@ function SummerHtmlImageMapCreator() {
 			case KEYS.F1: /* F1 key */
 				help.show();
 				e.preventDefault();
+				
 				break;
+			
 			case KEYS.ESC: /* ESC key */
 				help.hide();
 				if (is_draw) {
@@ -315,38 +319,49 @@ function SummerHtmlImageMapCreator() {
 					selected_area.redraw();
 					app.removeAllEvents();
 				};
+				
 				break;
+			
 			case KEYS.TOP: /* Top arrow key */
 				if (mode === 'editing' && selected_area) {
 					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](0, -1)));
 					e.preventDefault();
 				}
+				
 				break;
+			
 			case KEYS.BOTTOM: /* Bottom arrow key */
 				if (mode === 'editing' && selected_area) {
 					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](0, 1)));
 					e.preventDefault();
 				}
 				break;
+			
 			case KEYS.LEFT: /* Left arrow key */
 				if (mode === 'editing' && selected_area) {
 					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](-1, 0)));
 					e.preventDefault();
 				}
+				
 				break;
+			
 			case KEYS.RIGHT: /* Right arrow key */
 				if (mode === 'editing' && selected_area) {
 					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](1, 0)));
 					e.preventDefault();
 				}
+				
 				break;
+			
 			case KEYS.DELETE: /* DELETE key */
 				if (mode === 'editing' && selected_area) {
 					app.removeObject(selected_area);
 					selected_area = null;
 					info.unload();
 				}
+				
 				break;
+			
 			case KEYS.I: /* i (edit info) key */
 				if (mode === 'editing' && selected_area) {
 					var params = selected_area.params,
@@ -355,7 +370,14 @@ function SummerHtmlImageMapCreator() {
 						
 					info.load(selected_area, x + app.getOffset('x'), y + app.getOffset('y'));
 				}
+				
 				break;
+			
+			case KEYS.S: /* s (save) key */
+				app.saveInLocalStorage();
+
+				break;
+			
 			}
 		}
 		
@@ -363,6 +385,68 @@ function SummerHtmlImageMapCreator() {
 		
 		/* Returned object */
 		return {
+			saveInLocalStorage : function() {
+				var obj = {
+					areas : [],
+					img : img_src
+				};
+
+				utils.foreach(objects, function(x) {
+					obj.areas.push(x.toJSON());
+				});
+				
+				window.localStorage.setItem('SummerHTMLImageMapCreator', JSON.stringify(obj));
+			
+				alert('Saved');
+			
+				return this;
+			},
+			loadFromLocalStorage : function() {
+				var str = window.localStorage.getItem('SummerHTMLImageMapCreator'),
+					obj = JSON.parse(str),
+					areas = obj.areas;
+				
+				this.loadImage(obj.img);
+				
+				utils.foreach(areas, function(x) {
+					switch (x.type) {
+						case 'rect':
+							if (x.coords.length === 4) {
+								Rect.createFromSaved({
+									coords : x.coords,
+									href   : x.href,
+									alt    : x.alt,
+									title  : x.title
+								});
+							}
+							break;
+						
+						case 'circle':
+							if (x.coords.length === 3) {
+								Circle.createFromSaved({
+									coords : x.coords,
+									href   : x.href,
+									alt    : x.alt,
+									title  : x.title
+								});
+							}
+							break;
+						
+						case 'polygon':
+							if (x.coords.length >= 6 && x.coords.length % 2 === 0) {
+								Polygon.createFromSaved({
+									coords : x.coords,
+									href   : x.href,
+									alt    : x.alt,
+									title  : x.title
+								});
+							}
+							break;
+					}
+				});
+					
+				return this;
+			},
 			hide : function() {
 				utils.hide(wrapper);
 				return this;
@@ -385,6 +469,7 @@ function SummerHtmlImageMapCreator() {
 			loadImage : function(url) {
 				get_image.showLoadIndicator();
 				img.src = url;
+				img_src = url;
 				
 				img.onload = function() {
 					get_image.hideLoadIndicator().hide();
@@ -608,7 +693,7 @@ function SummerHtmlImageMapCreator() {
 			href_attr = utils.id('href_attr'),
 			alt_attr = utils.id('alt_attr'),
 			title_attr = utils.id('title_attr'),
-			save_button = utils.id('save'),
+			save_button = utils.id('save_details'),
 			close_button = form.querySelector('.close_button'),
 			sections = form.querySelectorAll('p'),
 			obj,
@@ -703,9 +788,137 @@ function SummerHtmlImageMapCreator() {
 		};
 	})();
 
+	
+	/* Load areas from html code */
+	var from_html_form = (function() {
+		var form = utils.id('from_html_wrapper'),
+			code_input = utils.id('code_input'),
+			load_button = utils.id('load_code_button'),
+			close_button = form.querySelector('.close_button'),
+			regexp_area = /<area(?=.*? shape="(rect|circle|poly)")(?=.*? coords="([\d ,]+?)")[\s\S]*?>/gmi,
+			regexp_href = / href="([\S\s]+?)"/,
+			regexp_alt = / alt="([\S\s]+?)"/,
+			regexp_title = / title="([\S\s]+?)"/;
+		
+		function test(str) {
+			var result_area,
+				result_href,
+				result_alt,
+				result_title,
+				type,
+				coords,
+				area,
+				href,
+				alt,
+				title,
+				success = false;
+			
+			if (str) {
+				result_area = regexp_area.exec(str);
+				
+				while (result_area) {
+					success = true;
+					
+					area = result_area[0];
+					
+					type = result_area[1];
+					coords = result_area[2].split(/ ?, ?/);
+					
+					result_href = regexp_href.exec(area);
+					if (result_href) {
+						href = result_href[1];
+					} else {
+						href = '';
+					}
+					
+					result_alt = regexp_alt.exec(area);
+					if (result_alt) {
+						alt = result_alt[1];
+					} else {
+						alt = '';
+					}
+					
+					result_title = regexp_title.exec(area);
+					if (result_title) {
+						title = result_title[1];
+					} else {
+						title = '';
+					}
+					
+					for (var i = 0, len = coords.length; i < len; i++) {
+						coords[i] = Number(coords[i]);
+					}
+					
+					switch (type) {
+						case 'rect':
+							if (coords.length === 4) {
+								Rect.createFromSaved({
+									coords : coords,
+									href   : href,
+									alt    : alt,
+									title  : title
+								});
+							}
+							break;
+						
+						case 'circle':
+							if (coords.length === 3) {
+								Circle.createFromSaved({
+									coords : coords,
+									href   : href,
+									alt    : alt,
+									title  : title
+								});
+							}
+							break;
+						
+						case 'poly':
+							if (coords.length >= 6 && coords.length % 2 === 0) {
+								Polygon.createFromSaved({
+									coords : coords,
+									href   : href,
+									alt    : alt,
+									title  : title
+								});
+							}
+							break;
+					}
+					
+					result_area = regexp_area.exec(str);
+				}
+				
+				if (success) {
+					hide();
+				}
+			}
+		}
+		
+		function load(e) {
+			test(code_input.value);
+				
+			e.preventDefault();
+		};
+		
+		function hide() {
+			utils.hide(form);
+		}
+		
+		load_button.addEventListener('click', load, false);
+		
+		close_button.addEventListener('click', hide, false);
+		
+		return {
+			show : function() {
+				code_input.value = '';
+				utils.show(form);
+			},
+			hide : hide
+		};
+	})();
 
-    /* Get image form */
-    var get_image = (function() {
+
+	/* Get image form */
+	var get_image = (function() {
 		var block = utils.id('get_image_wrapper'),
 			loading_indicator = utils.id('loading'),
 			button = utils.id('button'),
@@ -923,17 +1136,20 @@ function SummerHtmlImageMapCreator() {
 				return this;
 			}
 		};
-    })();
+	})();
 	
-    
-    /* Buttons and actions */
+	
+	/* Buttons and actions */
 	var buttons = (function() {
 		var all = utils.id('nav').getElementsByTagName('li'),
+			save = utils.id('save'),
+			load = utils.id('load'),
 			rectangle = utils.id('rect'),
 			circle = utils.id('circle'),
 			polygon = utils.id('polygon'),
 			edit = utils.id('edit'),
 			clear = utils.id('clear'),
+			from_html = utils.id('from_html'),
 			to_html = utils.id('to_html'),
 			preview = utils.id('preview'),
 			new_image = utils.id('new_image'),
@@ -943,12 +1159,27 @@ function SummerHtmlImageMapCreator() {
 			utils.foreach(all, function(x) {
 				utils.removeClass(x, 'selected');
 			});
-		};
+		}
 		
 		function selectOne(button) {
 			deselectAll();
 			utils.addClass(button, 'selected');
-		};
+		}
+		
+		function onSaveButtonClick(e) {
+			// Save in localStorage
+			app.saveInLocalStorage();
+			
+			e.preventDefault();
+		}
+		
+		function onLoadButtonClick(e) {
+			// Load from localStorage
+			app.clear()
+			   .loadFromLocalStorage();
+			
+			e.preventDefault();
+		}
 		
 		function onShapeButtonClick(e) {
 			// shape = rect || circle || polygon
@@ -961,7 +1192,7 @@ function SummerHtmlImageMapCreator() {
 			selectOne(this);
 			
 			e.preventDefault();
-		};
+		}
 		
 		function onClearButtonClick(e) {
 			// Clear all
@@ -975,40 +1206,47 @@ function SummerHtmlImageMapCreator() {
 			}
 			
 			e.preventDefault();
-		};
+		}
+		
+		function onFromHtmlButtonClick(e) {
+			// Load areas from html
+			from_html_form.show();
+			
+			e.preventDefault();
+		}
 		
 		function onToHtmlButtonClick(e) {
 			// Generate html code only
 			info.unload();
-            code.print();
+			code.print();
 			
 			e.preventDefault();
-		};
+		}
 		
 		function onPreviewButtonClick(e) {
 			if (app.getMode() === 'preview') {
 				app.setMode(null)
 				   .hidePreview();
 				deselectAll();
-            } else {
+			} else {
 				app.deselectAll()
 				   .setMode('preview')
 				   .setDefaultClass()
-                   .preview();
+				   .preview();
 				selectOne(this);
-            }
+			}
 			
 			e.preventDefault();
-		};
+		}
 		
 		function onEditButtonClick(e) {
 			if (app.getMode() === 'editing') {
 				app.setMode(null)
 				   .setDefaultClass()
 				   .deselectAll();
-                deselectAll();
-                utils.show(svg);
-            } else {
+				deselectAll();
+				utils.show(svg);
+			} else {
 				app.setShape(null)
 				   .setMode('editing')
 				   .setEditClass();
@@ -1016,7 +1254,7 @@ function SummerHtmlImageMapCreator() {
 			}
 			app.hidePreview();
 			e.preventDefault();
-		};
+		}
 		
 		function onNewImageButtonClick(e) {
 			// New image - clear all and back to loading image screen
@@ -1033,18 +1271,21 @@ function SummerHtmlImageMapCreator() {
 			} 
 			
 			e.preventDefault();
-		};
+		}
 		
 		function onShowHelpButtonClick(e) {
 			help.show();
 			
 			e.preventDefault();
-		};
+		}
 		
+		save.addEventListener('click', onSaveButtonClick, false);
+		load.addEventListener('click', onLoadButtonClick, false);
 		rectangle.addEventListener('click', onShapeButtonClick, false);
 		circle.addEventListener('click', onShapeButtonClick, false);
 		polygon.addEventListener('click', onShapeButtonClick, false);
 		clear.addEventListener('click', onClearButtonClick, false);
+		from_html.addEventListener('click', onFromHtmlButtonClick, false);
 		to_html.addEventListener('click', onToHtmlButtonClick, false);
 		preview.addEventListener('click', onPreviewButtonClick, false);
 		edit.addEventListener('click', onEditButtonClick, false);
@@ -1052,8 +1293,7 @@ function SummerHtmlImageMapCreator() {
 		show_help.addEventListener('click', onShowHelpButtonClick, false);
 	})();
 
-	
-	
+
 	/* AppEvent constructor */
 	function AppEvent(target, eventType, func) {
 		this.target = target;
@@ -1068,23 +1308,23 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	
-    /* Helper constructor */
-    function Helper(node, x, y) {
-        this.helper = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        this.helper.setAttribute('class', 'helper');
-        this.helper.setAttribute('height', 5);
-        this.helper.setAttribute('width', 5);
-        this.helper.setAttribute('x', x-3);
-        this.helper.setAttribute('y', y-3);
-        node.appendChild(this.helper);
-    };
-    
-    Helper.prototype.setCoords = function(x, y) {
-        this.helper.setAttribute('x', x-3);
-        this.helper.setAttribute('y', y-3);
+	/* Helper constructor */
+	function Helper(node, x, y) {
+		this.helper = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+		this.helper.setAttribute('class', 'helper');
+		this.helper.setAttribute('height', 5);
+		this.helper.setAttribute('width', 5);
+		this.helper.setAttribute('x', x-3);
+		this.helper.setAttribute('y', y-3);
+		node.appendChild(this.helper);
+	};
+
+	Helper.prototype.setCoords = function(x, y) {
+		this.helper.setAttribute('x', x-3);
+		this.helper.setAttribute('y', y-3);
 		
 		return this;
-    };
+	};
 	
 	Helper.prototype.setAction = function(action) {
 		this.helper.action = action;
@@ -1103,11 +1343,11 @@ function SummerHtmlImageMapCreator() {
 		
 		return this;
 	};
-    
-    /* Rectangle constructor */
-    var Rect = function (x, y){
-        app.setIsDraw(true);
-        
+
+	/* Rectangle constructor */
+	var Rect = function (x, y){
+		app.setIsDraw(true);
+
 		this.params = {
 			x : x, //distance from the left edge of the image to the left side of the rectangle
 			y : y, //distance from the top edge of the image to the top side of the rectangle
@@ -1115,28 +1355,28 @@ function SummerHtmlImageMapCreator() {
 			height : 0 //height of rectangle
 		};
 		
-        this.href = ''; //href attribute - not required
-        this.alt = ''; //alt attribute - not required
-        this.title = ''; //title attribute - not required
-        
-        this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); //container
-        this.rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); //rectangle
+		this.href = ''; //href attribute - not required
+		this.alt = ''; //alt attribute - not required
+		this.title = ''; //title attribute - not required
+
+		this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); //container
+		this.rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); //rectangle
 		app.addNodeToSvg(this.g);
-        this.g.appendChild(this.rect);
+		this.g.appendChild(this.rect);
 		
 		this.g.obj = this; /* Link to parent object */
 		
 		this.helpers = { //object with all helpers-rectangles
-            center : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            top : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            bottom : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            left : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            right : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            top_left : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            top_right : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            bottom_left : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            bottom_right : new Helper(this.g, x-this.params.width/2, y-this.params.height/2)
-        };
+			center : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
+			top : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
+			bottom : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
+			left : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
+			right : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
+			top_left : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
+			top_right : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
+			bottom_left : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
+			bottom_right : new Helper(this.g, x-this.params.width/2, y-this.params.height/2)
+		};
 		
 		this.helpers.center.setAction('move').setCursor('move');
 		this.helpers.left.setAction('editLeft').setCursor('e-resize');
@@ -1150,37 +1390,37 @@ function SummerHtmlImageMapCreator() {
 		
 		this.select().redraw();
 		
-        /* Add this object to array of all objects */  
-        app.addObject(this); 
-    };
-    
-    Rect.prototype.setCoords = function(params){
-        this.rect.setAttribute('x', params.x);
-        this.rect.setAttribute('y', params.y);
-        this.rect.setAttribute('width', params.width);
-        this.rect.setAttribute('height', params.height);
-            
-        this.helpers.center.setCoords(params.x + params.width/2, params.y + params.height/2);
-        this.helpers.top.setCoords(params.x + params.width/2, params.y);
-        this.helpers.bottom.setCoords(params.x + params.width/2, params.y + params.height);
-        this.helpers.left.setCoords(params.x, params.y + params.height/2);
-        this.helpers.right.setCoords(params.x + params.width, params.y + params.height/2);
-        this.helpers.top_left.setCoords(params.x, params.y);
-        this.helpers.top_right.setCoords(params.x + params.width, params.y);
-        this.helpers.bottom_left.setCoords(params.x, params.y + params.height);
-        this.helpers.bottom_right.setCoords(params.x + params.width, params.y + params.height);
+		/* Add this object to array of all objects */  
+		app.addObject(this); 
+	};
+
+	Rect.prototype.setCoords = function(params){
+		this.rect.setAttribute('x', params.x);
+		this.rect.setAttribute('y', params.y);
+		this.rect.setAttribute('width', params.width);
+		this.rect.setAttribute('height', params.height);
+
+		this.helpers.center.setCoords(params.x + params.width/2, params.y + params.height/2);
+		this.helpers.top.setCoords(params.x + params.width/2, params.y);
+		this.helpers.bottom.setCoords(params.x + params.width/2, params.y + params.height);
+		this.helpers.left.setCoords(params.x, params.y + params.height/2);
+		this.helpers.right.setCoords(params.x + params.width, params.y + params.height/2);
+		this.helpers.top_left.setCoords(params.x, params.y);
+		this.helpers.top_right.setCoords(params.x + params.width, params.y);
+		this.helpers.bottom_left.setCoords(params.x, params.y + params.height);
+		this.helpers.bottom_right.setCoords(params.x + params.width, params.y + params.height);
 		
 		return this;
-    };
-    
-    Rect.prototype.setParams = function(params){
-        this.params.x = params.x;
-        this.params.y = params.y;
-        this.params.width = params.width;
-        this.params.height = params.height;
+	};
+
+	Rect.prototype.setParams = function(params){
+		this.params.x = params.x;
+		this.params.y = params.y;
+		this.params.width = params.width;
+		this.params.height = params.height;
 		
 		return this;
-    };
+	};
 	
 	Rect.prototype.redraw = function() {
 		this.setCoords(this.params);
@@ -1188,8 +1428,8 @@ function SummerHtmlImageMapCreator() {
 		return this;
 	};
 	
-    Rect.prototype.dynamicDraw = function(x1,y1,square){
-        var x0 = this.params.x,
+	Rect.prototype.dynamicDraw = function(x1,y1,square){
+		var x0 = this.params.x,
 			y0 = this.params.y,
 			new_x,
 			new_y,
@@ -1210,53 +1450,53 @@ function SummerHtmlImageMapCreator() {
 			}
 		}
 
-        if (x0>x1) {
-            new_x = x1;
+		if (x0>x1) {
+			new_x = x1;
 			if (square && delta > 0) {
 				new_x = x1 + Math.abs(delta);
 			}
-        } else {
-            new_x = x0;
-        }
+		} else {
+			new_x = x0;
+		}
 		
-        if (y0>y1) {
-            new_y = y1;
+		if (y0>y1) {
+			new_y = y1;
 			if (square && delta < 0) {
 				new_y = y1 + Math.abs(delta);
 			}
-        } else {
-            new_y = y0;
-        }
+		} else {
+			new_y = y0;
+		}
 		
-        temp_params = { /* params */
-            x : new_x,
-            y : new_y,
-            width : new_width,
-            height: new_height
-        };
+		temp_params = { /* params */
+			x : new_x,
+			y : new_y,
+			width : new_width,
+			height: new_height
+		};
 		
 		this.setCoords(temp_params);
 		
 		return temp_params;
-    };
+	};
 	
 	Rect.prototype.onDraw = function(e) {
 		var _n_f = app.getNewArea(),
 		    square = e.shiftKey ? true : false;
 			
 		_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY), square);
-    };
+	};
 	
 	Rect.prototype.onDrawStop = function(e) {
 		var _n_f = app.getNewArea(),
 		    square = e.shiftKey ? true : false;
-			
+		
 		_n_f.setParams(_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY), square)).deselect();
 		
 		app.removeAllEvents()
 		   .setIsDraw(false)
 		   .resetNewArea();
-    };
+	};
 	
 	Rect.prototype.move = function(dx, dy) { //offset x and y
 		var temp_params = Object.create(this.params);
@@ -1381,7 +1621,7 @@ function SummerHtmlImageMapCreator() {
 			save_proportions = e.shiftKey ? true : false;
 			
 		_s_f.dynamicEdit(_s_f[edit_type](e.pageX - _s_f.delta.x, e.pageY - _s_f.delta.y), save_proportions);
-    };
+	};
 	
 	Rect.prototype.onEditStop = function(e) {
 		var _s_f = app.getSelectedArea(),
@@ -1393,7 +1633,7 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Rect.prototype.remove = function() {
-        app.removeNodeFromSvg(this.g);
+		app.removeNodeFromSvg(this.g);
 	};
 	
 	Rect.prototype.select = function() {
@@ -1420,50 +1660,90 @@ function SummerHtmlImageMapCreator() {
 		return this;
 	}
 	
-    Rect.prototype.toString = function() { //to html map area code
-        var x2 = this.params.x + this.params.width;
-        var y2 = this.params.y + this.params.height;
-        return '<area shape="rect" coords="'
-            + this.params.x + ', '
-            + this.params.y + ', '
-            + x2 + ', '
-            + y2
-            + '"'
-            + (this.href ? ' href="' + this.href + '"' : '')
-            + (this.alt ? ' alt="' + this.alt + '"' : '')
-            + (this.title ? ' title="' + this.title + '"' : '')
-            + ' />';
-    };
-    
+	Rect.prototype.toString = function() { //to html map area code
+		var x2 = this.params.x + this.params.width,
+			y2 = this.params.y + this.params.height;
+		return '<area shape="rect" coords="'
+			+ this.params.x + ', '
+			+ this.params.y + ', '
+			+ x2 + ', '
+			+ y2
+			+ '"'
+			+ (this.href ? ' href="' + this.href + '"' : '')
+			+ (this.alt ? ' alt="' + this.alt + '"' : '')
+			+ (this.title ? ' title="' + this.title + '"' : '')
+			+ ' />';
+	};
 	
-    /* Circle constructor */
-    var Circle = function (x, y){
-        app.setIsDraw(true);
-        
+	Rect.createFromSaved = function(params) {
+		var coords = params.coords,
+			href = params.href,
+			alt = params.alt,
+			title = params.title,
+			area = new Rect(coords[0], coords[1]);
+		
+		area.setParams(area.dynamicDraw(coords[2], coords[3])).deselect();
+		
+		app.setIsDraw(false)
+		   .resetNewArea();
+		   
+		if (href) {
+			area.href = href;
+		}
+		
+		if (alt) {
+			area.alt = alt;
+		}
+		
+		if (title) {
+			area.title = title;
+		}
+	};
+	
+	Rect.prototype.toJSON = function() {
+		return {
+			type   : 'rect',
+			coords : [
+				this.params.x,
+				this.params.y,
+				this.params.x + this.params.width,
+				this.params.y + this.params.height
+			],
+			href   : this.href,
+			alt    : this.alt,
+			title  : this.title
+		}
+	};
+
+
+	/* Circle constructor */
+	var Circle = function (x, y){
+		app.setIsDraw(true);
+
 		this.params = {
 			cx : x, //distance from the left edge of the image to the center of the circle
 			cy : y, //distance from the top edge of the image to the center of the circle
 			radius : 0 //radius of the circle
 		};
 		
-        this.href = ''; //href attribute - not required
-        this.alt = ''; //alt attribute - not required
-        this.title = ''; //title attribute - not required
-        
-        this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        this.circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+		this.href = ''; //href attribute - not required
+		this.alt = ''; //alt attribute - not required
+		this.title = ''; //title attribute - not required
+		
+		this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+		this.circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
 		app.addNodeToSvg(this.g);
-        this.g.appendChild(this.circle);
+		this.g.appendChild(this.circle);
 		
 		this.g.obj = this; /* Link to parent object */
-        
-        this.helpers = { //array of all helpers-rectangles
-            center : new Helper(this.g, x, y),
-            top : new Helper(this.g, x, y),
-            bottom : new Helper(this.g, x, y),
-            left : new Helper(this.g, x, y),
-            right : new Helper(this.g, x, y)
-        };
+
+		this.helpers = { //array of all helpers-rectangles
+			center : new Helper(this.g, x, y),
+			top : new Helper(this.g, x, y),
+			bottom : new Helper(this.g, x, y),
+			left : new Helper(this.g, x, y),
+			right : new Helper(this.g, x, y)
+		};
 		
 		this.helpers.center.setAction('move');
 		this.helpers.top.setAction('editTop').setCursor('n-resize');
@@ -1471,41 +1751,41 @@ function SummerHtmlImageMapCreator() {
 		this.helpers.left.setAction('editLeft').setCursor('w-resize');
 		this.helpers.right.setAction('editRight').setCursor('e-resize');
 
-        this.select().redraw();
+		this.select().redraw();
 		
-        app.addObject(this); //add this object to array of all objects
-    };
-    
-    Circle.prototype.setCoords = function(params){
-        this.circle.setAttribute('cx', params.cx);
-        this.circle.setAttribute('cy', params.cy);
-        this.circle.setAttribute('r', params.radius);
+		app.addObject(this); //add this object to array of all objects
+	};
 
-        this.helpers.center.setCoords(params.cx, params.cy);
-        this.helpers.top.setCoords(params.cx, params.cy - params.radius);
-        this.helpers.right.setCoords(params.cx + params.radius, params.cy);
-        this.helpers.bottom.setCoords(params.cx, params.cy + params.radius);
-        this.helpers.left.setCoords(params.cx - params.radius, params.cy);
+	Circle.prototype.setCoords = function(params){
+		this.circle.setAttribute('cx', params.cx);
+		this.circle.setAttribute('cy', params.cy);
+		this.circle.setAttribute('r', params.radius);
+
+		this.helpers.center.setCoords(params.cx, params.cy);
+		this.helpers.top.setCoords(params.cx, params.cy - params.radius);
+		this.helpers.right.setCoords(params.cx + params.radius, params.cy);
+		this.helpers.bottom.setCoords(params.cx, params.cy + params.radius);
+		this.helpers.left.setCoords(params.cx - params.radius, params.cy);
 		
 		return this;
-    };
-    
-    Circle.prototype.setParams = function(params){
-        this.params.cx = params.cx;
-        this.params.cy = params.cy;
-        this.params.radius = params.radius;
+	};
+
+	Circle.prototype.setParams = function(params){
+		this.params.cx = params.cx;
+		this.params.cy = params.cy;
+		this.params.radius = params.radius;
 		
 		return this;
-    };
+	};
 	
 	Circle.prototype.redraw = function() {
 		this.setCoords(this.params);
 		
 		return this;
 	};
-    
-    Circle.prototype.dynamicDraw = function(x1,y1){
-        var x0 = this.params.cx,
+
+	Circle.prototype.dynamicDraw = function(x1,y1){
+		var x0 = this.params.cx,
 			y0 = this.params.cy,
 			dx,
 			dy,
@@ -1515,34 +1795,34 @@ function SummerHtmlImageMapCreator() {
 		x1 = x1 ? x1 : x0;
 		y1 = y1 ? y1 : y0;
 			
-        dx = Math.abs(x0-x1);
-        dy = Math.abs(y0-y1);
-        radius = Math.round(Math.sqrt(dx*dx + dy*dy));
+		dx = Math.abs(x0-x1);
+		dy = Math.abs(y0-y1);
+		radius = Math.round(Math.sqrt(dx*dx + dy*dy));
 
-        temp_params = { /* params */
-            cx : x0,
-            cy : y0,
-            radius : radius
-        };
+		temp_params = { /* params */
+			cx : x0,
+			cy : y0,
+			radius : radius
+		};
 		
 		this.setCoords(temp_params);
 		
 		return temp_params;
-    };
+	};
 	
 	Circle.prototype.onDraw = function(e) {
 		var _n_f = app.getNewArea();
-        _n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY));
-    };
-        
-    Circle.prototype.onDrawStop = function(e) {
+		_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY));
+	};
+
+	Circle.prototype.onDrawStop = function(e) {
 		var _n_f = app.getNewArea();
-        _n_f.setParams(_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY))).deselect();
-           
+		_n_f.setParams(_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY))).deselect();
+
 		app.removeAllEvents()
-           .setIsDraw(false)
+		   .setIsDraw(false)
 		   .resetNewArea();
-    };
+	};
 	
 	Circle.prototype.move = function(dx, dy){ //offset x and y
 		var temp_params = Object.create(this.params);
@@ -1600,7 +1880,7 @@ function SummerHtmlImageMapCreator() {
 			edit_type = app.getEditType();
 		
 		_s_f.dynamicEdit(_s_f[edit_type](e.pageX - _s_f.delta.x, e.pageY - _s_f.delta.y));
-    };
+	};
 	
 	Circle.prototype.onEditStop = function(e) {
 		var _s_f = app.getSelectedArea(),
@@ -1612,7 +1892,7 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Circle.prototype.remove = function(){
-        app.removeNodeFromSvg(this.g);
+		app.removeNodeFromSvg(this.g);
 	};
 	
 	Circle.prototype.select = function() {
@@ -1639,58 +1919,97 @@ function SummerHtmlImageMapCreator() {
 		return this;
 	}
 
-    Circle.prototype.toString = function() { //to html map area code
-        return '<area shape="circle" coords="'
-            + this.params.cx + ', '
-            + this.params.cy + ', '
-            + this.params.radius
-            + '"'
-            + (this.href ? ' href="' + this.href + '"' : '')
-            + (this.alt ? ' alt="' + this.alt + '"' : '')
-            + (this.title ? ' title="' + this.title + '"' : '')
-            + ' />';
-    };
-                    
-					
-    /* Polygon constructor */
-    var Polygon = function(x, y){
-        app.setIsDraw(true);
-        
-        this.params = [x, y]; //array of coordinates of polygon points
-        
-        this.href = ''; //href attribute - not required
-        this.alt = ''; //alt attribute - not required
-        this.title = ''; //title attribute - not required
-        
-        this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        this.polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+	Circle.prototype.toString = function() { //to html map area code
+		return '<area shape="circle" coords="'
+			+ this.params.cx + ', '
+			+ this.params.cy + ', '
+			+ this.params.radius
+			+ '"'
+			+ (this.href ? ' href="' + this.href + '"' : '')
+			+ (this.alt ? ' alt="' + this.alt + '"' : '')
+			+ (this.title ? ' title="' + this.title + '"' : '')
+			+ ' />';
+	};
+
+	Circle.createFromSaved = function(params) {
+		var coords = params.coords,
+			href = params.href,
+			alt = params.alt,
+			title = params.title,
+			area = new Circle(coords[0], coords[1]);
+		
+		area.setParams(area.dynamicDraw(coords[0], coords[1] + coords[2])).deselect();
+
+		app.setIsDraw(false)
+		   .resetNewArea();
+		   
+		if (href) {
+			area.href = href;
+		}
+		
+		if (alt) {
+			area.alt = alt;
+		}
+		
+		if (title) {
+			area.title = title;
+		}
+	};
+	
+	Circle.prototype.toJSON = function() {
+		return {
+			type   : 'circle',
+			coords : [
+				this.params.cx,
+				this.params.cy,
+				this.params.radius
+			],
+			href   : this.href,
+			alt    : this.alt,
+			title  : this.title
+		}
+	};
+	
+		
+	/* Polygon constructor */
+	var Polygon = function(x, y){
+		app.setIsDraw(true);
+
+		this.params = [x, y]; //array of coordinates of polygon points
+
+		this.href = ''; //href attribute - not required
+		this.alt = ''; //alt attribute - not required
+		this.title = ''; //title attribute - not required
+
+		this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+		this.polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
 		app.addNodeToSvg(this.g);
-        this.g.appendChild(this.polygon);
+		this.g.appendChild(this.polygon);
 		
 		this.g.obj = this; /* Link to parent object */
 
-        this.helpers = [ //array of all helpers-rectangles
-            new Helper(this.g, this.params[0], this.params[1])
-        ];
+		this.helpers = [ //array of all helpers-rectangles
+			new Helper(this.g, this.params[0], this.params[1])
+		];
 		
 		this.helpers[0].setAction('pointMove').setCursor('pointer').setId(0);
-        
+
 		this.selected_point = -1;
 		
 		this.select().redraw();
 
-        app.addObject(this); //add this object to array of all objects
-    };
-    
-    Polygon.prototype.setCoords = function(params){
-        var coords_values = params.join(' ');
-        this.polygon.setAttribute('points', coords_values);
+		app.addObject(this); //add this object to array of all objects
+	};
+
+	Polygon.prototype.setCoords = function(params){
+		var coords_values = params.join(' ');
+		this.polygon.setAttribute('points', coords_values);
 		utils.foreach(this.helpers, function(x, i) {
 			x.setCoords(params[2*i], params[2*i+1]);
 		});
 		
 		return this;
-    };
+	};
 	
 	Polygon.prototype.setParams = function(arr) {
 		this.params = arr;
@@ -1699,21 +2018,21 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Polygon.prototype.addPoint = function(x, y){
-        var helper = new Helper(this.g, x, y);
+		var helper = new Helper(this.g, x, y);
 		helper.setAction('pointMove').setCursor('pointer').setId(this.helpers.length);
-        this.helpers.push(helper);
+		this.helpers.push(helper);
 		this.params.push(x, y);
 		this.redraw();
 		
 		return this;
-    };
+	};
 
 	Polygon.prototype.redraw = function() {
 		this.setCoords(this.params);
 		
 		return this;
 	};
-    
+
 	Polygon.prototype.right_angle = function(x, y){
 		var old_x = this.params[this.params.length-2],
 			old_y = this.params[this.params.length-1],
@@ -1761,9 +2080,9 @@ function SummerHtmlImageMapCreator() {
 		};
 	};
 	
-    Polygon.prototype.dynamicDraw = function(x, y, right_angle){
-        var temp_params = [].concat(this.params);
-        
+	Polygon.prototype.dynamicDraw = function(x, y, right_angle){
+		var temp_params = [].concat(this.params);
+
 		if (right_angle) {
 			var right_coords = this.right_angle(x, y);
 			x = right_coords.x;
@@ -1771,8 +2090,8 @@ function SummerHtmlImageMapCreator() {
 		}
 		
 		temp_params.push(x, y);
-        
-        this.setCoords(temp_params);
+
+		this.setCoords(temp_params);
 		
 		return temp_params;
 	};
@@ -1782,9 +2101,9 @@ function SummerHtmlImageMapCreator() {
 		var right_angle = e.shiftKey ? true : false;
 			
 		_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY), right_angle);
-    };
-                    
-    Polygon.prototype.onDrawAddPoint = function(e) {
+	};
+
+	Polygon.prototype.onDrawAddPoint = function(e) {
 		var x = utils.rightX(e.pageX),
 			y = utils.rightY(e.pageY),
 		
@@ -1795,12 +2114,12 @@ function SummerHtmlImageMapCreator() {
 			x = right_coords.x;
 			y = right_coords.y;
 		}
-        _n_f.addPoint(x, y);
-    };
-                    
-    Polygon.prototype.onDrawStop = function(e) {
+		_n_f.addPoint(x, y);
+	};
+
+	Polygon.prototype.onDrawStop = function(e) {
 		var _n_f = app.getNewArea();
-        if (e.type == 'click' || (e.type == 'keydown' && e.keyCode == 13)) { // key Enter
+		if (e.type == 'click' || (e.type == 'keydown' && e.keyCode == 13)) { // key Enter
 			if (_n_f.params.length >= 6) { //>= 3 points for polygon
 				_n_f.polyline = _n_f.polygon;
 				_n_f.polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
@@ -1812,9 +2131,9 @@ function SummerHtmlImageMapCreator() {
 					.setIsDraw(false)
 					.resetNewArea();
 			}
-        };
+		};
 		e.stopPropagation();
-    };
+	};
 	
 	Polygon.prototype.move = function(x, y){ //offset x and y
 		for (var i = 0, count = this.params.length; i < count; i++) {
@@ -1835,7 +2154,7 @@ function SummerHtmlImageMapCreator() {
 		_s_f[edit_type](e.pageX - _s_f.delta.x, e.pageY - _s_f.delta.y);
 		_s_f.delta.x = e.pageX;
 		_s_f.delta.y = e.pageY;
-    };
+	};
 	
 	Polygon.prototype.onEditStop = function(e) {
 		var _s_f = app.getSelectedArea(),
@@ -1845,7 +2164,7 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Polygon.prototype.remove = function(){
-        app.removeNodeFromSvg(this.g);
+		app.removeNodeFromSvg(this.g);
 	};
 	
 	Polygon.prototype.select = function() {
@@ -1871,23 +2190,66 @@ function SummerHtmlImageMapCreator() {
 		
 		return this;
 	}
-    
-    Polygon.prototype.toString = function() { //to html map area code
-        for (var i = 0, count = this.params.length, str = ''; i < count; i++) {
-            str += this.params[i];
-            if (i != count - 1) {
-                str += ', ';
-            }
-        }
-        return '<area shape="poly" coords="'
-            + str
-            + '"'
-            + (this.href ? ' href="' + this.href + '"' : '')
-            + (this.alt ? ' alt="' + this.alt + '"' : '')
-            + (this.title ? ' title="' + this.title + '"' : '')
-            + ' />';
-    };
-   
+
+	Polygon.prototype.toString = function() { //to html map area code
+		for (var i = 0, count = this.params.length, str = ''; i < count; i++) {
+			str += this.params[i];
+			if (i != count - 1) {
+				str += ', ';
+			}
+		}
+		return '<area shape="poly" coords="'
+			+ str
+			+ '"'
+			+ (this.href ? ' href="' + this.href + '"' : '')
+			+ (this.alt ? ' alt="' + this.alt + '"' : '')
+			+ (this.title ? ' title="' + this.title + '"' : '')
+			+ ' />';
+	};
+	
+	Polygon.createFromSaved = function(params) {
+		var coords = params.coords,
+			href = params.href,
+			alt = params.alt,
+			title = params.title,
+			area = new Polygon(coords[0], coords[1]);
+		
+		for (var i = 2, c = coords.length; i < c; i+=2) {
+			area.addPoint(coords[i], coords[i+1]);
+		}
+		
+		area.polyline = area.polygon;
+		area.polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+		area.g.replaceChild(area.polygon, area.polyline);
+		area.setCoords(area.params).deselect();
+		delete(area.polyline);
+		
+		app.setIsDraw(false)
+			.resetNewArea();
+		
+		if (href) {
+			area.href = href;
+		}
+		
+		if (alt) {
+			area.alt = alt;
+		}
+		
+		if (title) {
+			area.title = title;
+		}
+	};
+	
+	Polygon.prototype.toJSON = function() {
+		return {
+			type   : 'polygon',
+			coords : this.params,
+			href   : this.href,
+			alt    : this.alt,
+			title  : this.title
+		}
+	};
+	
 };
-   
+
 document.addEventListener("DOMContentLoaded", SummerHtmlImageMapCreator, false);
