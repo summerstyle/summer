@@ -30,6 +30,9 @@
 		</h1>
 		<nav id="nav" class="clearfix">
 			<ul>
+				<li id="save"><a href="#">save</a></li>
+				<li id="load"><a href="#">load</a></li>
+				<li id="from_html"><a href="#">from html</a></li>
 				<li id="rect"><a href="#">rectangle</a></li>
 				<li id="circle"><a href="#">circle</a></li>
 				<li id="polygon"><a href="#">polygon</a></li>
@@ -74,8 +77,21 @@
 		<label for="title_attr">title</label>
 		<input type="text" id="title_attr" />
 	</p>
-	<button id="save">Save</button>
+	<button id="save_details">Save</button>
 </form>
+
+<!-- From html block -->
+<div id="from_html_wrapper">
+	<form id="from_html_form">
+		<h5>Loading areas</h5>
+		<span class="close_button" title="close"></span>
+		<p>
+			<label for="code_input">Enter your html code:</label>
+			<textarea id="code_input"></textarea>
+		</p>
+		<button id="load_code_button">Load</button>
+	</form>
+</div>
   
 <!-- Get image form -->
 <div id="get_image_wrapper">
@@ -106,11 +122,12 @@
 <!-- Help block -->
 <div id="overlay"></div>
 <div id="help">
-	<span class="close_button"></span>
+	<span class="close_button" title="close"></span>
 	<div class="txt">
 		<section>
-			<h2>Loading an image</h2>
+			<h2>Main</h2>
 			<p><span class="key">F5</span> &mdash; reload the page and display the form for loading image again</p>
+			<p><span class="key">s</span> &mdash; save map params in localStorage</p>
 		</section>
 		<section>
 			<h2>Drawing mode (rectangle / circle / polygon)</h2>
