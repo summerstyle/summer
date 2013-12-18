@@ -694,6 +694,7 @@ function SummerHtmlImageMapCreator() {
 			alt_attr = utils.id('alt_attr'),
 			title_attr = utils.id('title_attr'),
 			save_button = utils.id('save_details'),
+			clear_button = utils.id('details_clear'),
 			close_button = form.querySelector('.close_button'),
 			sections = form.querySelectorAll('p'),
 			obj,
@@ -721,6 +722,14 @@ function SummerHtmlImageMapCreator() {
 			e.preventDefault();
 		};
 		
+		function clear(e) {
+			href_attr.value = '';
+			alt_attr.value = '';
+			title_attr.value = '';
+			changedReset();
+			e.preventDefault();
+			}
+
 		function unload() {
 			obj = null;
 			changedReset();
@@ -750,6 +759,7 @@ function SummerHtmlImageMapCreator() {
 		}
 		
 		save_button.addEventListener('click', save, false);
+		clear_button.addEventListener('click', clear, false);
 		
 		href_attr.addEventListener('keydown', function(e) { e.stopPropagation(); }, false);
 		alt_attr.addEventListener('keydown', function(e) { e.stopPropagation(); }, false);
