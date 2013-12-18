@@ -716,7 +716,7 @@ function SummerHtmlImageMapCreator() {
 			
 			obj.href ? obj.with_href() : obj.without_href();
 			
-			changedReset();
+			unload();
 				
 			e.preventDefault();
 		};
