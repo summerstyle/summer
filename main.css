@@ -300,6 +300,18 @@ a:link, a:visited {
 .error#url {
     border: 2px solid #F00;
 }
+#summer_settings {
+	position: absolute;
+    top: 100px;
+    left: 100px;
+    background: rgba(0,0,0,0.9);
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: rgba(0,0,0,0.2) 0 0 2px 1px;
+    display: none;
+    z-index: 1000;
+    color: #FFF;
+}
 #edit_details {
     position: absolute;
     top: 100px;

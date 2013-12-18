@@ -41,6 +41,7 @@
 				<li id="preview"><a href="#">preview</a></li>
 				<li id="clear"><a href="#">clear</a></li>
 				<li id="new_image"><a href="#">new image</a></li>
+				<li id="show_settings"><a href="#">settings</a></li>
 				<li id="show_help"><a href="#">?</a></li>
 			</ul>
 		</nav>
@@ -79,6 +80,18 @@
 	</p>
 	<button id="save_details">Save</button>
 	<button id="details_clear">Clear</button> 
+</form>
+
+<!-- Settings block -->
+<form id="summer_settings">
+	<h4>Settings</h4>
+	<span class="close_button" title="close"></span>
+	<p>
+		<label for="auto_close_edit" title="Controls whether or not to automatically close the attribute edit window on save.">Autoclose Edit Pop-up</label>
+		<input type="checkbox" id="settings_auto_close_edit" data-default="true"/>
+	</p>
+	<button id="settings_save">Save</button>
+	<button id="settings_reset">Reset to Default</button> 
 </form>
 
 <!-- From html block -->

@@ -926,6 +926,90 @@ function SummerHtmlImageMapCreator() {
 		};
 	})();
 
+	/* Load settings */
+	var summer_settings = load_settings();
+
+	function load_settings() {
+		var settings = null;
+		settings = localStorage.getItem('SummerHTMLImageMapCreator_settings');
+		if (settings == null) {
+			settings = { 'settings_auto_close_edit' : true,};
+			}
+		else {
+			try { settings = JSON.parse(settings);
+			}
+			catch (err) { //corrupted settings?
+				console.log(err);
+				console.log(settings);
+				settings = { 'settings_auto_close_edit' : true,};
+				}
+			}
+		return settings;
+		}
+
+	var settings_dialog = (function() {
+		var form = utils.id('summer_settings'),
+			buttons = {
+			'settings_auto_close_edit' : utils.id('settings_auto_close_edit'),},
+			close_button = form.querySelector('.close_button'),
+			save_button = utils.id('settings_save'),
+			reset_button = utils.id('settings_reset'),
+			x = null;
+
+		function get_value(button) {
+			if (button.type === 'checkbox') {
+				return button.checked;
+				}
+			return button.value;
+			}
+
+		function set_value(button, value) {
+			if (button.type === 'checkbox') {
+				button.checked = value;
+			}
+			else {
+				button.value = value;
+			}
+		}
+
+		function show() {
+			for (x in summer_settings) {
+				set_value(buttons[x], summer_settings[x]);
+				}
+			utils.show(form);
+		};
+
+		function save(e) {
+			e.preventDefault();
+			for (x in summer_settings) {
+				summer_settings[x] = get_value(buttons[x]);
+				}
+			localStorage.setItem('SummerHTMLImageMapCreator_settings', JSON.stringify(summer_settings));
+			hide();
+		}
+
+		function to_default(e) {
+			e.preventDefault();
+			for (x in buttons) {
+				set_value(buttons[x], buttons[x].getAttribute("data-default")); //nicer to use dataset property but that is not available in ie10 and under which still has much too big of a market share.
+			}
+		}
+
+		function hide() {
+			utils.hide(form);
+		}
+
+		save_button.addEventListener('click', save, false);
+
+		close_button.addEventListener('click', hide, false);
+
+		reset_button.addEventListener('click', to_default, false);
+
+		return {
+			show : show,
+			hide : hide
+		};
+	})();
 
 	/* Get image form */
 	var get_image = (function() {
