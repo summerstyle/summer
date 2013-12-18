@@ -2,7 +2,7 @@
 <html>
 <head>
 	<title>Summer html image map creator</title>
-	<link href="main.css" type="text/css" rel="stylesheet" />
+	<link href="main.min.css" type="text/css" rel="stylesheet" />
 	<meta charset="UTF-8" />
 	<!--
 		Summer html image map creator
@@ -41,6 +41,7 @@
 				<li id="preview"><a href="#">preview</a></li>
 				<li id="clear"><a href="#">clear</a></li>
 				<li id="new_image"><a href="#">new image</a></li>
+				<li id="show_settings"><a href="#">settings</a></li>
 				<li id="show_help"><a href="#">?</a></li>
 			</ul>
 		</nav>
@@ -63,7 +64,7 @@
 
 <!-- Edit details block -->
 <form id="edit_details">
-	<h5>Attrubutes</h5>
+	<h5>Attributes</h5>
 	<span class="close_button" title="close"></span>
 	<p>
 		<label for="href_attr">href</label>
@@ -78,6 +79,19 @@
 		<input type="text" id="title_attr" />
 	</p>
 	<button id="save_details">Save</button>
+	<button id="details_clear">Clear</button> 
+</form>
+
+<!-- Settings block -->
+<form id="summer_settings">
+	<h4>Settings</h4>
+	<span class="close_button" title="close"></span>
+	<p>
+		<label for="auto_close_edit" title="Controls whether or not to automatically close the attribute edit window on save.">Autoclose Edit Pop-up</label>
+		<input type="checkbox" id="settings_auto_close_edit" data-default="true"/>
+	</p>
+	<button id="settings_save">Save</button>
+	<button id="settings_reset">Reset to Default</button> 
 </form>
 
 <!-- From html block -->
@@ -154,6 +168,6 @@
 	</footer>
 </div>
 
-<script type="text/javascript" src="scripts.js"></script>
+<script type="text/javascript" src="scripts.min.js"></script>
 </body>
 </html>
