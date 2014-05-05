@@ -2012,8 +2012,8 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Polygon.prototype.setParams = function(arr) {
-		this.params = arr;
-		
+		this.params = Array.prototype.slice.call(arr);
+	
 		return this;
 	};
 	
@@ -2136,22 +2136,33 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Polygon.prototype.move = function(x, y){ //offset x and y
+		var temp_params = Object.create(this.params);
+		
 		for (var i = 0, count = this.params.length; i < count; i++) {
 			i % 2 ? this.params[i] += y : this.params[i] += x;
 		}
-		this.redraw();
+		
+		return temp_params;
 	};
 	
 	Polygon.prototype.pointMove = function(x, y){ //offset x and y
 		this.params[2 * this.selected_point] += x;
 		this.params[2 * this.selected_point + 1] += y;
-		this.redraw();
+
+		return this.params;
+	};
+	
+	Polygon.prototype.dynamicEdit = function(temp_params) {
+		this.setCoords(temp_params);
+		
+		return temp_params;
 	};
 	
 	Polygon.prototype.onEdit = function(e) {
 		var _s_f = app.getSelectedArea(),
 			edit_type = app.getEditType();
-		_s_f[edit_type](e.pageX - _s_f.delta.x, e.pageY - _s_f.delta.y);
+			
+		_s_f.dynamicEdit(_s_f[edit_type](e.pageX - _s_f.delta.x, e.pageY - _s_f.delta.y));
 		_s_f.delta.x = e.pageX;
 		_s_f.delta.y = e.pageY;
 	};
@@ -2159,7 +2170,9 @@ function SummerHtmlImageMapCreator() {
 	Polygon.prototype.onEditStop = function(e) {
 		var _s_f = app.getSelectedArea(),
 			edit_type = app.getEditType();
-		_s_f[edit_type](e.pageX - _s_f.delta.x, e.pageY - _s_f.delta.y);
+		
+		_s_f.setParams(_s_f.dynamicEdit(_s_f[edit_type](e.pageX - _s_f.delta.x, e.pageY - _s_f.delta.y)));
+		
 		app.removeAllEvents();
 	};
 	
