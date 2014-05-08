@@ -4,9 +4,11 @@ Summer html image map creator
 
 Released under the GPL3 (GPL3.txt)
 
-Loading an image
+Main
 ----------------
 `F5` — reload the page and display the form for loading image again
+
+`S` — save map params in localStorage
 
 Drawing mode (rectangle / circle / polygon)
 -------------------------------------------
@@ -25,7 +27,9 @@ Editing mode
 
 `SHIFT` — edit and save proportions for rectangle
 
-`i` — edit attributes of a selected area (or dblclick on an area)
+`I` — edit attributes of a selected area (or dblclick on an area)
+
+`CTRL` + `C` — a copy of the selected area
 
 `↑` — move a selected area up
 

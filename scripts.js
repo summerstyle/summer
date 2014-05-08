@@ -172,7 +172,8 @@ function SummerHtmlImageMapCreator() {
 				RIGHT  : 39,
 				DELETE : 46,
 				I      : 73,
-				S      : 83
+				S      : 83,
+				C      : 67
 			};
 		
 		function recalcOffsetValues() {
@@ -301,83 +302,113 @@ function SummerHtmlImageMapCreator() {
 		
 		/* Add keydown event for document */
 		function onDocumentKeyDown(e) {
+			var ctrlDown = e.ctrlKey || e.metaKey // PC || Mac
+			
 			switch (e.keyCode) {
-			case KEYS.F1: /* F1 key */
-				help.show();
-				e.preventDefault();
-				
-				break;
-			
-			case KEYS.ESC: /* ESC key */
-				help.hide();
-				if (is_draw) {
-					is_draw = false;
-					new_area.remove();
-					objects.pop();
-					app.removeAllEvents();
-				} else if (mode === 'editing') {
-					selected_area.redraw();
-					app.removeAllEvents();
-				};
-				
-				break;
-			
-			case KEYS.TOP: /* Top arrow key */
-				if (mode === 'editing' && selected_area) {
-					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](0, -1)));
+				case KEYS.F1: /* F1 key */
+					help.show();
 					e.preventDefault();
-				}
+					
+					break;
 				
-				break;
-			
-			case KEYS.BOTTOM: /* Bottom arrow key */
-				if (mode === 'editing' && selected_area) {
-					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](0, 1)));
-					e.preventDefault();
-				}
-				break;
-			
-			case KEYS.LEFT: /* Left arrow key */
-				if (mode === 'editing' && selected_area) {
-					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](-1, 0)));
-					e.preventDefault();
-				}
+				case KEYS.ESC: /* ESC key */
+					help.hide();
+					if (is_draw) {
+						is_draw = false;
+						new_area.remove();
+						objects.pop();
+						app.removeAllEvents();
+					} else if (mode === 'editing') {
+						selected_area.redraw();
+						app.removeAllEvents();
+					};
+					
+					break;
 				
-				break;
-			
-			case KEYS.RIGHT: /* Right arrow key */
-				if (mode === 'editing' && selected_area) {
-					selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](1, 0)));
-					e.preventDefault();
-				}
+				case KEYS.TOP: /* Top arrow key */
+					if (mode === 'editing' && selected_area) {
+						selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](0, -1)));
+						e.preventDefault();
+					}
+					
+					break;
 				
-				break;
-			
-			case KEYS.DELETE: /* DELETE key */
-				if (mode === 'editing' && selected_area) {
-					app.removeObject(selected_area);
-					selected_area = null;
-					info.unload();
-				}
+				case KEYS.BOTTOM: /* Bottom arrow key */
+					if (mode === 'editing' && selected_area) {
+						selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](0, 1)));
+						e.preventDefault();
+					}
+					break;
 				
-				break;
-			
-			case KEYS.I: /* i (edit info) key */
-				if (mode === 'editing' && selected_area) {
-					var params = selected_area.params,
-						x = params.x || params.cx || params[0],
-						y = params.y || params.cy || params[1];
+				case KEYS.LEFT: /* Left arrow key */
+					if (mode === 'editing' && selected_area) {
+						selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](-1, 0)));
+						e.preventDefault();
+					}
+					
+					break;
+				
+				case KEYS.RIGHT: /* Right arrow key */
+					if (mode === 'editing' && selected_area) {
+						selected_area.setParams(selected_area.dynamicEdit(selected_area['move'](1, 0)));
+						e.preventDefault();
+					}
+					
+					break;
+				
+				case KEYS.DELETE: /* DELETE key */
+					if (mode === 'editing' && selected_area) {
+						app.removeObject(selected_area);
+						selected_area = null;
+						info.unload();
+					}
+					
+					break;
+				
+				case KEYS.I: /* i (edit info) key */
+					if (mode === 'editing' && selected_area) {
+						var params = selected_area.params,
+							x = params.x || params.cx || params[0],
+							y = params.y || params.cy || params[1];
+							
+						info.load(selected_area, x + app.getOffset('x'), y + app.getOffset('y'));
+					}
+					
+					break;
+				
+				case KEYS.S: /* s (save) key */
+					app.saveInLocalStorage();
+	
+					break;
+				
+				case KEYS.C: /* CTRL+C copy */
+					if (mode === 'editing' && selected_area && ctrlDown) {
+						var Constructor = null,
+							area_params = selected_area.toJSON(),
+							area;
 						
-					info.load(selected_area, x + app.getOffset('x'), y + app.getOffset('y'));
-				}
+						switch (area_params.type) {
+							case 'rect':
+								Constructor = Rect;
+								break;
+		
+							case 'circle':
+								Constructor = Circle;
+								break;
+		
+							case 'polygon':
+								Constructor = Polygon;
+								break;
+						}
+						
+						if (Constructor) {
+							Constructor.createFromSaved(area_params);
+							selected_area.setParams(selected_area.move(10, 10));
+							selected_area.redraw();
+						}
+					}
 				
-				break;
-			
-			case KEYS.S: /* s (save) key */
-				app.saveInLocalStorage();
-
-				break;
-			
+					break;
 			}
 		}
 		
