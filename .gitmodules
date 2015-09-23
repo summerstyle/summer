@@ -1,0 +1,3 @@
+[submodule "libs/app"]
+	path = libs/app
+	url = https://github.com/summerstyle/app.js.git

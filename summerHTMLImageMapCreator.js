@@ -2,10 +2,8 @@
  * Summer html image map creator
  * http://github.com/summerstyle/summer
  *
- * Copyright 2013 Vera Lobacheva (summerstyle.ru)
+ * Copyright 2015 Vera Lobacheva (summerstyle.ru)
  * Released under the GPL3 (GPL3.txt)
- *
- * Thu May 15 2013 15:15:27 GMT+0400
  */
 
 "use strict";
@@ -13,7 +11,9 @@
 function SummerHtmlImageMapCreator() {
 	
 	/* Utilities */
-	var utils = {
+	var utils = App.utils;
+	
+	utils.own = {
 		offsetX : function(node) {
 			var box = node.getBoundingClientRect(),
 				scroll = window.pageXOffset;
@@ -32,53 +32,12 @@ function SummerHtmlImageMapCreator() {
 		rightY : function(y) {
 			return y-app.getOffset('y');
 		},
-		trim : function(str) {
-			return str.replace(/^\s+|\s+$/g, '');
-		},
-		id : function (str) {
-			return document.getElementById(str);
-		},
-		hide : function(node) {
-			node.style.display = 'none';
-			
-			return this;
-		},
-		show : function(node) {
-			node.style.display = 'block';
-			
-			return this;
-		},
 		encode : function(str) {
 			return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
 		},
-		foreach : function(arr, func) {
-			for(var i = 0, count = arr.length; i < count; i++) {
-				func(arr[i], i);
-			}
-		},
-		foreachReverse : function(arr, func) {
-			for(var i = arr.length - 1; i >= 0; i--) {
-				func(arr[i], i);
-			}
-		},
-		debug : (function() {
-			var output = document.getElementById('debug');
-			return function() {
-				output.innerHTML = [].join.call(arguments, ' ');
-			}
-		})(),
-		stopEvent : function(e) {
-			e.stopPropagation();
-			e.preventDefault();
-			
-			return this;
-		},
-		addClass : function(node, str) {
-			// node.className.baseVal for SVG-elements
-			// or
-			// node.className for HTML-elements
-			var is_svg = node.className.baseVal !== undefined ? true : false,
-				arr = is_svg ? node.className.baseVal.split(' ') : node.className.split(' '),
+		addSVGClass : function(node, str) {
+			// node.className.baseVal for SVG-elements [vs. node.className for HTML-elements]
+			var arr = node.className.baseVal.split(' '),
 				isset = false;
 			
 			utils.foreach(arr, function(x) {
@@ -86,17 +45,17 @@ function SummerHtmlImageMapCreator() {
 					isset = true;
 				}
 			});
-			
+
 			if (!isset) {
 				arr.push(str);
-				is_svg ? node.className.baseVal = arr.join(' ') : node.className = arr.join(' ');
+				node.className.baseVal = arr.join(' ');
 			}
 			
 			return this;
 		},
-		removeClass : function(node, str) {
-			var is_svg = node.className.baseVal !== undefined ? true : false,
-				arr = is_svg ? node.className.baseVal.split(' ') : node.className.split(' '),
+		removeSVGClass : function(node, str) {
+			// node.className.baseVal for SVG-elements [vs. node.className for HTML-elements]
+			var arr = node.className.baseVal.split(' '),
 				isset = false;
 			
 			utils.foreach(arr, function(x, i) {
@@ -107,12 +66,13 @@ function SummerHtmlImageMapCreator() {
 			});
 			
 			if (isset) {
-				is_svg ? node.className.baseVal = arr.join(' ') : node.className = arr.join(' ');
+				node.className.baseVal = arr.join(' ');
 			}
 			
 			return this;
 		},
-		hasClass : function(node, str) {
+		hasSVGClass : function(node, str) {
+			// node.className.baseVal for SVG-elements [vs. node.className for HTML-elements]
 			var is_svg = node.className.baseVal !== undefined ? true : false,
 				arr = is_svg ? node.className.baseVal.split(' ') : node.className.split(' '),
 				isset = false;
@@ -125,17 +85,6 @@ function SummerHtmlImageMapCreator() {
 			
 			return isset;
 		},
-		extend : function(obj, options) {
-			var target = {};
-			
-			for (name in obj) {
-				if(obj.hasOwnProperty(name)) {
-					target[name] = options[name] ? options[name] : obj[name];
-				}
-			}
-			
-			return target;
-		},
 		supportFileReader : (function() {
 			return (typeof FileReader !== 'undefined');
 		})()
@@ -145,14 +94,17 @@ function SummerHtmlImageMapCreator() {
 	/* Main object */
 	var app = (function() {
 		var body = document.getElementsByTagName('body')[0],
-			wrapper = utils.id('wrapper'),
-			svg = utils.id('svg'),
-			img = utils.id('img'),
+			wrapper = utils.dom.id('wrapper'),
+			svg = utils.dom.id('svg'),
+			img = utils.dom.id('img'),
 			img_src = null,
-			container = utils.id('image'),
-			about = utils.id('about'),
-			coords_info = utils.id('coords'),
-			offset = {x: 0, y: 0},
+			container = utils.dom.id('image'),
+			about = utils.dom.id('about'),
+			coords_info = utils.dom.id('coords'),
+			offset = {
+				x: 0,
+				y: 0
+			},
 			shape = null,
 			is_draw = false,
 			mode = null, // drawing || editing || preview
@@ -177,8 +129,8 @@ function SummerHtmlImageMapCreator() {
 			};
 		
 		function recalcOffsetValues() {
-			offset.x = utils.offsetX(container);
-			offset.y = utils.offsetY(container);
+			offset.x = utils.own.offsetX(container);
+			offset.y = utils.own.offsetY(container);
 		};
 		
 		/* Get offset value */
@@ -194,7 +146,7 @@ function SummerHtmlImageMapCreator() {
 		
 		/* Display cursor coordinates info */
 		container.addEventListener('mousemove', function(e){
-			coords_info.innerHTML = 'x: ' + utils.rightX(e.pageX) + ', ' + 'y: ' + utils.rightY(e.pageY);
+			coords_info.innerHTML = 'x: ' + utils.own.rightX(e.pageX) + ', ' + 'y: ' + utils.own.rightY(e.pageY);
 		}, false);
 		
 		container.addEventListener('mouseleave', function(){
@@ -215,7 +167,7 @@ function SummerHtmlImageMapCreator() {
 						'y' : e.pageY
 					};
 
-					if (utils.hasClass(e.target, 'helper')) {
+					if (utils.own.hasSVGClass(e.target, 'helper')) {
 						var helper = e.target;
 						edit_type = helper.action;
 
@@ -246,21 +198,21 @@ function SummerHtmlImageMapCreator() {
 				code.hide();
 				switch (shape) {
 				case 'rect':
-					new_area = new Rect(utils.rightX(e.pageX), utils.rightY(e.pageY));
+					new_area = new Rect(utils.own.rightX(e.pageX), utils.own.rightY(e.pageY));
 					
 					app.addEvent(container, 'mousemove', new_area.onDraw)
 					   .addEvent(container, 'click', new_area.onDrawStop);
 						
 					break;
 				case 'circle':
-					new_area = new Circle(utils.rightX(e.pageX), utils.rightY(e.pageY));
+					new_area = new Circle(utils.own.rightX(e.pageX), utils.own.rightY(e.pageY));
 						
 					app.addEvent(container, 'mousemove', new_area.onDraw)
 					   .addEvent(container, 'click', new_area.onDrawStop);
 					
 					break;
 				case 'polygon':
-					new_area = new Polygon(utils.rightX(e.pageX), utils.rightY(e.pageY));
+					new_area = new Polygon(utils.own.rightX(e.pageX), utils.own.rightY(e.pageY));
 					
 					app.addEvent(container, 'mousemove', new_area.onDraw)
 					   .addEvent(container, 'click', new_area.onDrawAddPoint)
@@ -433,8 +385,14 @@ function SummerHtmlImageMapCreator() {
 				return this;
 			},
 			loadFromLocalStorage : function() {
-				var str = window.localStorage.getItem('SummerHTMLImageMapCreator'),
-					obj = JSON.parse(str),
+				var str = window.localStorage.getItem('SummerHTMLImageMapCreator');
+				
+				if (!str) {
+					alert('localStorage is empty');
+					return;
+				}
+				
+				var obj = JSON.parse(str),
 					areas = obj.areas;
 				
 				this.loadImage(obj.img);
@@ -478,14 +436,6 @@ function SummerHtmlImageMapCreator() {
 					
 				return this;
 			},
-			hide : function() {
-				utils.hide(wrapper);
-				return this;
-			},
-			show : function() {
-				utils.show(wrapper);
-				return this;
-			},
 			recalcOffsetValues: function() {
 				recalcOffsetValues();
 				return this;
@@ -495,6 +445,7 @@ function SummerHtmlImageMapCreator() {
 				svg.setAttribute('height', height);
 				container.style.width = width + 'px';
 				container.style.height = height + 'px';
+				utils.dom.show(container);
 				return this;
 			},
 			loadImage : function(url) {
@@ -504,8 +455,7 @@ function SummerHtmlImageMapCreator() {
 				
 				img.onload = function() {
 					get_image.hideLoadIndicator().hide();
-					app.show()
-					   .setDimensions(img.width, img.height)
+					app.setDimensions(img.width, img.height)
 					   .recalcOffsetValues();
 				};
 				return this;
@@ -519,14 +469,14 @@ function SummerHtmlImageMapCreator() {
 				return function() {
 					info.unload();
 					app.setShape(null);
-					utils.hide(svg);
+					utils.dom.hide(svg);
 					map.innerHTML = app.getHTMLCode();
-					code.print();
+
 					return this;
 				}
 			})(),
 			hidePreview : function() {
-				utils.show(svg);
+				utils.dom.show(svg);
 				map.innerHTML = '';
 				return this;
 			},
@@ -621,18 +571,19 @@ function SummerHtmlImageMapCreator() {
 				return this;
 			},
 			setEditClass : function() {
-				utils.removeClass(container, 'draw')
-					 .addClass(container, 'edit');
+				utils.dom.removeClass(container, 'draw');
+				utils.dom.addClass(container, 'edit');
 				return this;
 			},
 			setDrawClass : function() {
-				utils.removeClass(container, 'edit')
-					  .addClass(container, 'draw');
+				utils.dom.removeClass(container, 'edit');
+				utils.dom.addClass(container, 'draw');
+				
 				return this;
 			},
 			setDefaultClass : function() {
-				utils.removeClass(container, 'edit')
-					 .removeClass(container, 'draw');
+				utils.dom.removeClass(container, 'edit');
+				utils.dom.removeClass(container, 'draw');
 				return this;
 			},
 			addEvent : function(target, eventType, func) {
@@ -652,12 +603,12 @@ function SummerHtmlImageMapCreator() {
 					if (!objects.length) {
 						return '0 objects';
 					}
-					html_code += utils.encode('<img src="' + filename + '" alt="" usemap="#map" />') +
-						'<br />' + utils.encode('<map name="map">') + '<br />';
+					html_code += utils.own.encode('<img src="' + filename + '" alt="" usemap="#map" />') +
+						'<br />' + utils.own.encode('<map name="map">') + '<br />';
 					utils.foreachReverse(objects, function(x) {
-						html_code += '&nbsp;&nbsp;&nbsp;&nbsp;' + utils.encode(x.toString()) + '<br />';
+						html_code += '&nbsp;&nbsp;&nbsp;&nbsp;' + utils.own.encode(x.toString()) + '<br />';
 					});
-					html_code += utils.encode('</map>');
+					html_code += utils.own.encode('</map>');
 				} else {
 					utils.foreachReverse(objects, function(x) {
 						html_code += x.toString();
@@ -669,62 +620,33 @@ function SummerHtmlImageMapCreator() {
 	})();
 	
 	/* Help block */
-	var help = (function() {
-		var block = utils.id('help'),
-			overlay = utils.id('overlay'),
-			close_button = block.querySelector('.close_button');
-			
-		function hide() {
-			utils.hide(block);
-			utils.hide(overlay);
-		}
-		
-		function show() {
-			utils.show(block);
-			utils.show(overlay);
-		}
-			
-		overlay.addEventListener('click', hide, false);
-			
-		close_button.addEventListener('click', hide, false);
-			
-		return {
-			show : show,
-			hide : hide
-		};	
-	})();
+	var help = new App.Window({
+		content_el : utils.dom.id('help'),
+        overlay : true
+	});
 	
 	/* For html code of created map */
-	var code = (function(){
-		var block = utils.id('code'),
-			content = utils.id('code_content'),
-			close_button = block.querySelector('.close_button');
-			
-		close_button.addEventListener('click', function(e) {
-			utils.hide(block);
-			e.preventDefault();
-		}, false);
-			
-		return {
-			print: function() {
-				content.innerHTML = app.getHTMLCode(true);
-				utils.show(block);
-			},
-			hide: function() {
-				utils.hide(block);
-			}
-		};
-	})();
-
+	var code = new App.Window({
+		content_el : utils.dom.id('code'),
+        overlay : true,
+        js_module : function(self){	
+			return {
+				print: function() {
+					self.content_el.innerHTML = app.getHTMLCode(true);
+					self.show();
+				}
+			};
+		}
+	});
 	
     /* Edit selected area info */
 	var info = (function() {
-		var form = utils.id('edit_details'),
+		var form = utils.dom.id('edit_details'),
 			header = form.querySelector('h5'),
-			href_attr = utils.id('href_attr'),
-			alt_attr = utils.id('alt_attr'),
-			title_attr = utils.id('title_attr'),
-			save_button = utils.id('save_details'),
+			href_attr = utils.dom.id('href_attr'),
+			alt_attr = utils.dom.id('alt_attr'),
+			title_attr = utils.dom.id('title_attr'),
+			save_button = utils.dom.id('save_details'),
 			close_button = form.querySelector('.close_button'),
 			sections = form.querySelectorAll('p'),
 			obj,
@@ -734,9 +656,9 @@ function SummerHtmlImageMapCreator() {
 			temp_y;
 		
 		function changedReset() {
-			utils.removeClass(form, 'changed');
+			utils.dom.removeClass(form, 'changed');
 			utils.foreach(sections, function(x) {
-				utils.removeClass(x, 'changed');
+				utils.dom.removeClass(x, 'changed');
 			});
 		}
 		
@@ -755,7 +677,7 @@ function SummerHtmlImageMapCreator() {
 		function unload() {
 			obj = null;
 			changedReset();
-			utils.hide(form);
+			utils.dom.hide(form);
 		}
 		
 		function setCoords(x, y) {
@@ -776,8 +698,8 @@ function SummerHtmlImageMapCreator() {
 		}
 		
 		function change() {
-			utils.addClass(form, 'changed');
-			utils.addClass(this.parentNode, 'changed');
+			utils.dom.addClass(form, 'changed');
+			utils.dom.addClass(this.parentNode, 'changed');
 		}
 		
 		save_button.addEventListener('click', save, false);
@@ -808,7 +730,7 @@ function SummerHtmlImageMapCreator() {
 				href_attr.value = object.href ? object.href : '';
 				alt_attr.value = object.alt ? object.alt : '';
 				title_attr.value = object.title ? object.title : '';
-				utils.show(form);
+				utils.dom.show(form);
 				if (new_x && new_y) {
 					x = new_x;
 					y = new_y;
@@ -821,411 +743,370 @@ function SummerHtmlImageMapCreator() {
 
 	
 	/* Load areas from html code */
-	var from_html_form = (function() {
-		var form = utils.id('from_html_wrapper'),
-			code_input = utils.id('code_input'),
-			load_button = utils.id('load_code_button'),
-			close_button = form.querySelector('.close_button'),
-			regexp_area = /<area(?=.*? shape="(rect|circle|poly)")(?=.*? coords="([\d ,]+?)")[\s\S]*?>/gmi,
-			regexp_href = / href="([\S\s]+?)"/,
-			regexp_alt = / alt="([\S\s]+?)"/,
-			regexp_title = / title="([\S\s]+?)"/;
-		
-		function test(str) {
-			var result_area,
-				result_href,
-				result_alt,
-				result_title,
-				type,
-				coords,
-				area,
-				href,
-				alt,
-				title,
-				success = false;
+	var from_html_form = new App.Window({
+		content_el : utils.dom.id('from_html_form'),
+        overlay : true,
+        js_module : function(self) {
+			var code_input = utils.dom.id('code_input'),
+				load_button = utils.dom.id('load_code_button'),
+				regexp_area = /<area(?=.*? shape="(rect|circle|poly)")(?=.*? coords="([\d ,]+?)")[\s\S]*?>/gmi,
+				regexp_href = / href="([\S\s]+?)"/,
+				regexp_alt = / alt="([\S\s]+?)"/,
+				regexp_title = / title="([\S\s]+?)"/;
 			
-			if (str) {
-				result_area = regexp_area.exec(str);
+			function test(str) {
+				var result_area,
+					result_href,
+					result_alt,
+					result_title,
+					type,
+					coords,
+					area,
+					href,
+					alt,
+					title,
+					success = false;
 				
-				while (result_area) {
-					success = true;
-					
-					area = result_area[0];
-					
-					type = result_area[1];
-					coords = result_area[2].split(/ ?, ?/);
-					
-					result_href = regexp_href.exec(area);
-					if (result_href) {
-						href = result_href[1];
-					} else {
-						href = '';
-					}
-					
-					result_alt = regexp_alt.exec(area);
-					if (result_alt) {
-						alt = result_alt[1];
-					} else {
-						alt = '';
-					}
-					
-					result_title = regexp_title.exec(area);
-					if (result_title) {
-						title = result_title[1];
-					} else {
-						title = '';
-					}
-					
-					for (var i = 0, len = coords.length; i < len; i++) {
-						coords[i] = Number(coords[i]);
-					}
-					
-					switch (type) {
-						case 'rect':
-							if (coords.length === 4) {
-								Rect.createFromSaved({
-									coords : coords,
-									href   : href,
-									alt    : alt,
-									title  : title
-								});
-							}
-							break;
-						
-						case 'circle':
-							if (coords.length === 3) {
-								Circle.createFromSaved({
-									coords : coords,
-									href   : href,
-									alt    : alt,
-									title  : title
-								});
-							}
-							break;
-						
-						case 'poly':
-							if (coords.length >= 6 && coords.length % 2 === 0) {
-								Polygon.createFromSaved({
-									coords : coords,
-									href   : href,
-									alt    : alt,
-									title  : title
-								});
-							}
-							break;
-					}
-					
+				if (str) {
 					result_area = regexp_area.exec(str);
-				}
-				
-				if (success) {
-					hide();
+					
+					while (result_area) {
+						success = true;
+						
+						area = result_area[0];
+						
+						type = result_area[1];
+						coords = result_area[2].split(/ ?, ?/);
+						
+						result_href = regexp_href.exec(area);
+						if (result_href) {
+							href = result_href[1];
+						} else {
+							href = '';
+						}
+						
+						result_alt = regexp_alt.exec(area);
+						if (result_alt) {
+							alt = result_alt[1];
+						} else {
+							alt = '';
+						}
+						
+						result_title = regexp_title.exec(area);
+						if (result_title) {
+							title = result_title[1];
+						} else {
+							title = '';
+						}
+						
+						for (var i = 0, len = coords.length; i < len; i++) {
+							coords[i] = Number(coords[i]);
+						}
+						
+						switch (type) {
+							case 'rect':
+								if (coords.length === 4) {
+									Rect.createFromSaved({
+										coords : coords,
+										href   : href,
+										alt    : alt,
+										title  : title
+									});
+								}
+								break;
+							
+							case 'circle':
+								if (coords.length === 3) {
+									Circle.createFromSaved({
+										coords : coords,
+										href   : href,
+										alt    : alt,
+										title  : title
+									});
+								}
+								break;
+							
+							case 'poly':
+								if (coords.length >= 6 && coords.length % 2 === 0) {
+									Polygon.createFromSaved({
+										coords : coords,
+										href   : href,
+										alt    : alt,
+										title  : title
+									});
+								}
+								break;
+						}
+						
+						result_area = regexp_area.exec(str);
+					}
+					
+					if (success) {
+						self.hide();
+					}
 				}
 			}
+			
+			function load(e) {
+				test(code_input.value);
+					
+				e.preventDefault();
+			};
+			
+			load_button.addEventListener('click', load, false);
+			
+			return {
+				open : function() {
+					code_input.value = '';
+					self.show();
+				}
+			};
 		}
-		
-		function load(e) {
-			test(code_input.value);
-				
-			e.preventDefault();
-		};
-		
-		function hide() {
-			utils.hide(form);
-		}
-		
-		load_button.addEventListener('click', load, false);
-		
-		close_button.addEventListener('click', hide, false);
-		
-		return {
-			show : function() {
-				code_input.value = '';
-				utils.show(form);
-			},
-			hide : hide
-		};
-	})();
+	});
 
 
 	/* Get image form */
-	var get_image = (function() {
-		var block = utils.id('get_image_wrapper'),
-			loading_indicator = utils.id('loading'),
-			button = utils.id('button'),
-			filename = null,
-			last_changed = null;
-			
-		// Drag'n'drop - the first way to loading an image
-		var drag_n_drop = (function() {
-			var dropzone = utils.id('dropzone'),
-				dropzone_clear_button = dropzone.querySelector('.clear_button'),
-				sm_img = utils.id('sm_img');
-			
-			if (!utils.supportFileReader) { // For IE9
-				utils.hide(utils.id('file_reader_support'));
-			};
-			
-			function testFile(type) {
-				switch (type) {
-				case 'image/jpeg':
-				case 'image/gif':
-				case 'image/png':
-					return true;
-					break;
-				}
-				return false;
-			}
-			
-			dropzone.addEventListener('dragover', function(e){
-				utils.stopEvent(e);
-			}, false);
-			
-			dropzone.addEventListener('dragleave', function(e){
-				utils.stopEvent(e);
-			}, false);
-
-			dropzone.addEventListener('drop', function(e){
-				utils.stopEvent(e);
+	var get_image = new App.Window({
+		content_el : utils.dom.id('get_image'),
+        overlay : true,
+        js_module : function(self) {
+			var loading_indicator = utils.dom.id('loading'),
+				button = utils.dom.id('button'),
+				filename = null,
+				last_changed = null;
 				
-				var reader = new FileReader(),
-					file = e.dataTransfer.files[0];
+			// Drag'n'drop - the first way to loading an image
+			var drag_n_drop = (function() {
+				var dropzone = utils.dom.id('dropzone'),
+					dropzone_clear_button = dropzone.querySelector('.clear_button'),
+					sm_img = utils.dom.id('sm_img');
 				
-				if (testFile(file.type)) {
-					utils.removeClass(dropzone, 'error');
-					
-					reader.readAsDataURL(file);
-					
-					reader.onload = function(e) {
-						sm_img.src = e.target.result;
-						sm_img.style.display = 'inline-block';
-						filename = file.name;
-						utils.show(dropzone_clear_button);
-						last_changed = drag_n_drop;
-					};
-				} else {
-					clearDropzone();
-					utils.addClass(dropzone, 'error');
-				}
-
-			}, false);
-			
-			function clearDropzone() {
-				sm_img.src = '';
-				
-				utils.hide(sm_img)
-					 .hide(dropzone_clear_button)
-					 .removeClass(dropzone, 'error');
-					 
-				last_changed = url_input;
-			};
-			
-			dropzone_clear_button.addEventListener('click', clearDropzone, false);
-
-			return {
-				clear : clearDropzone,
-				init : function() {
-					dropzone.draggable = true;
-					this.clear();
-					utils.hide(sm_img)
-					     .hide(dropzone_clear_button);
-				},
-				test : function() {
-					return sm_img.src ? true : false;
-				},
-				getImage : function() {
-					return sm_img.src;
-				}
-			};
-		})();
-		
-		
-		/* Set a url - the second way to loading an image */
-		var url_input = (function() {
-			var url = utils.id('url'),
-				url_clear_button = url.parentNode.querySelector('.clear_button');
-			
-			function testUrl(str) {
-				var url_str = utils.trim(str),
-					temp_array = url_str.split('.'),
-					ext;
-
-				if(temp_array.length > 1) {
-					ext = temp_array[temp_array.length-1].toLowerCase();
-					switch (ext) {
-					case 'jpg':
-					case 'jpeg':
-					case 'gif':
-					case 'png':
-						return true;
-						break;
-					};
+				if (!utils.own.supportFileReader) { // For IE9
+					utils.dom.hide(utils.dom.id('file_reader_support'));
 				};
 				
-				return false;
-			}
-			
-			function onUrlChange() {
-				setTimeout(function(){
-					if(url.value.length) {
-						utils.show(url_clear_button);
-						last_changed = url_input;
-					} else {
-						utils.hide(url_clear_button);
-						last_changed = drag_n_drop;
+				function testFile(type) {
+					switch (type) {
+					case 'image/jpeg':
+					case 'image/gif':
+					case 'image/png':
+						return true;
+						break;
 					}
-				}, 0);
+					return false;
+				}
+				
+				dropzone.addEventListener('dragover', function(e){
+					utils.dom.stopEvent(e);
+				}, false);
+				
+				dropzone.addEventListener('dragleave', function(e){
+					utils.dom.stopEvent(e);
+				}, false);
+	
+				dropzone.addEventListener('drop', function(e){
+					utils.dom.stopEvent(e);
+					
+					var reader = new FileReader(),
+						file = e.dataTransfer.files[0];
+					
+					if (testFile(file.type)) {
+						utils.dom.removeClass(dropzone, 'error');
+						
+						reader.readAsDataURL(file);
+						
+						reader.onload = function(e) {
+							sm_img.src = e.target.result;
+							sm_img.style.display = 'inline-block';
+							filename = file.name;
+							utils.dom.show(dropzone_clear_button);
+							last_changed = drag_n_drop;
+						};
+					} else {
+						clearDropzone();
+						utils.dom.addClass(dropzone, 'error');
+					}
+	
+				}, false);
+				
+				function clearDropzone() {
+					sm_img.src = '';
+					
+					utils.dom.hide(sm_img);
+					utils.dom.hide(dropzone_clear_button);
+					utils.dom.removeClass(dropzone, 'error');
+						 
+					last_changed = url_input;
+				};
+				
+				dropzone_clear_button.addEventListener('click', clearDropzone, false);
+	
+				return {
+					clear : clearDropzone,
+					init : function() {
+						dropzone.draggable = true;
+						this.clear();
+						
+						utils.dom.hide(sm_img);
+						utils.dom.hide(dropzone_clear_button);
+					},
+					test : function() {
+						return sm_img.src ? true : false;
+					},
+					getImage : function() {
+						return sm_img.src;
+					}
+				};
+			})();
+			
+			
+			/* Set a url - the second way to loading an image */
+			var url_input = (function() {
+				var url = utils.dom.id('url'),
+					url_clear_button = url.parentNode.querySelector('.clear_button');
+				
+				function testUrl(str) {
+					var url_str = utils.trim(str),
+						temp_array = url_str.split('.'),
+						ext;
+	
+					if(temp_array.length > 1) {
+						ext = temp_array[temp_array.length-1].toLowerCase();
+						switch (ext) {
+						case 'jpg':
+						case 'jpeg':
+						case 'gif':
+						case 'png':
+							return true;
+							break;
+						};
+					};
+					
+					return false;
+				}
+				
+				function onUrlChange() {
+					setTimeout(function(){
+						if(url.value.length) {
+							utils.dom.show(url_clear_button);
+							last_changed = url_input;
+						} else {
+							utils.dom.hide(url_clear_button);
+							last_changed = drag_n_drop;
+						}
+					}, 0);
+				}
+				
+				url.addEventListener('keypress', onUrlChange, false);
+				url.addEventListener('change', onUrlChange, false);
+				url.addEventListener('paste', onUrlChange, false);
+				
+				function clearUrl() {
+					url.value = '';
+					utils.dom.hide(url_clear_button);
+					utils.dom.removeClass(url, 'error');
+					last_changed = url_input;
+				};
+				
+				url_clear_button.addEventListener('click', clearUrl, false);
+	
+				return {
+					clear : clearUrl,
+					init : function() {
+						this.clear();
+						utils.dom.hide(url_clear_button);
+					},
+					test : function() {
+						if(testUrl(url.value)) {
+							utils.dom.removeClass(url, 'error');
+							return true;
+						} else {
+							utils.dom.addClass(url, 'error');
+						};
+						return false;
+					},
+					getImage : function() {
+						var tmp_arr = url.value.split('/');
+							filename = tmp_arr[tmp_arr.length - 1];
+							
+						return utils.trim(url.value)
+					}
+				};
+			})();
+				
+			
+			/* Block init */
+			function init() {
+				utils.dom.hide(loading_indicator);
+				drag_n_drop.init();
+				url_input.init();
 			}
+			init();
 			
-			url.addEventListener('keypress', onUrlChange, false);
-			url.addEventListener('change', onUrlChange, false);
-			url.addEventListener('paste', onUrlChange, false);
-			
-			function clearUrl() {
-				url.value = '';
-				utils.hide(url_clear_button);
-				utils.removeClass(url, 'error');
-				last_changed = url_input;
+			/* Block clear */
+			function clear() {
+				drag_n_drop.clear();
+				url_input.clear();
+				last_changed = null;
 			};
 			
-			url_clear_button.addEventListener('click', clearUrl, false);
-
+			/* Selected image loading */
+			function onButtonClick(e) {
+				if (last_changed === url_input && url_input.test()) {
+					app.loadImage(url_input.getImage()).setFilename(filename);
+				} else if (last_changed === drag_n_drop && drag_n_drop.test()) {
+					app.loadImage(drag_n_drop.getImage()).setFilename(filename);
+				}
+				
+				e.preventDefault();
+			};
+			
+			button.addEventListener('click', onButtonClick, false);
+			
+			/* Returned object */
 			return {
-				clear : clearUrl,
-				init : function() {
-					this.clear();
-					utils.hide(url_clear_button);
+				open : function() {
+					clear();
+					self.show()
 				},
-				test : function() {
-					if(testUrl(url.value)) {
-						utils.removeClass(url, 'error');
-						return true;
-					} else {
-						utils.addClass(url, 'error');
-					};
-					return false;
+				showLoadIndicator : function() {
+					utils.dom.show(loading_indicator);
+					
+					return this;
 				},
-				getImage : function() {
-					var tmp_arr = url.value.split('/');
-						filename = tmp_arr[tmp_arr.length - 1];
-						
-					return utils.trim(url.value)
+				hideLoadIndicator : function() {
+					utils.dom.hide(loading_indicator);
+					
+					return this;
 				}
 			};
-		})();
-		
-		
-		/* Block init */
-		function init() {
-			utils.hide(loading_indicator);
-			drag_n_drop.init();
-			url_input.init();
 		}
-		init();
-		
-		/* Block clear */
-		function clear() {
-			drag_n_drop.clear();
-			url_input.clear();
-			last_changed = null;
-		};
-		
-		/* Selected image loading */
-		function onButtonClick(e) {
-			if (last_changed === url_input && url_input.test()) {
-				app.loadImage(url_input.getImage()).setFilename(filename);
-			} else if (last_changed === drag_n_drop && drag_n_drop.test()) {
-				app.loadImage(drag_n_drop.getImage()).setFilename(filename);
-			}
-			
-			e.preventDefault();
-		};
-		
-		button.addEventListener('click', onButtonClick, false);
-		
-		/* Returned object */
-		return {
-			show : function() {
-				clear();
-				utils.show(block);
-				
-				return this;
-			},
-			hide : function() {
-				utils.hide(block);
-				
-				return this;
-			},
-			showLoadIndicator : function() {
-				utils.show(loading_indicator);
-				
-				return this;
-			},
-			hideLoadIndicator : function() {
-				utils.hide(loading_indicator);
-				
-				return this;
-			}
-		};
-	})();
+	});
+	
+	get_image.open();
 	
 	
-	/* Buttons and actions */
-	var buttons = (function() {
-		var all = utils.id('nav').getElementsByTagName('li'),
-			save = utils.id('save'),
-			load = utils.id('load'),
-			rectangle = utils.id('rect'),
-			circle = utils.id('circle'),
-			polygon = utils.id('polygon'),
-			edit = utils.id('edit'),
-			clear = utils.id('clear'),
-			from_html = utils.id('from_html'),
-			to_html = utils.id('to_html'),
-			preview = utils.id('preview'),
-			new_image = utils.id('new_image'),
-			show_help = utils.id('show_help');
-		
-		function deselectAll() {
-			utils.foreach(all, function(x) {
-				utils.removeClass(x, 'selected');
-			});
-		}
-		
-		function selectOne(button) {
-			deselectAll();
-			utils.addClass(button, 'selected');
-		}
-		
-		function onSaveButtonClick(e) {
+	// Menu
+	var menu = new App.Menu(utils.dom.id('menu'), {
+        'save' : function() {
 			// Save in localStorage
-			app.saveInLocalStorage();
-			
-			e.preventDefault();
-		}
-		
-		function onLoadButtonClick(e) {
+			app.saveInLocalStorage();    
+        },
+		'load' : function() {
 			// Load from localStorage
 			app.clear()
-			   .loadFromLocalStorage();
-			
-			e.preventDefault();
-		}
-		
-		function onShapeButtonClick(e) {
-			// shape = rect || circle || polygon
-			app.setMode('drawing')
-			   .setDrawClass()
-			   .setShape(this.id)
-			   .deselectAll()
-			   .hidePreview();
+			   .loadFromLocalStorage();   
+        },
+		'from_html' : function() {
+			// Load areas from html
+			from_html_form.open();    
+        },
+		'to_html' : function() {
+			// Generate html code only
 			info.unload();
-			selectOne(this);
-			
-			e.preventDefault();
-		}
-		
-		function onClearButtonClick(e) {
+			code.print();    
+        },
+		'clear' : function() {
 			// Clear all
 			if (confirm('Clear all?')) {
 				app.setMode(null)
@@ -1234,60 +1115,9 @@ function SummerHtmlImageMapCreator() {
 					.clear()
 					.hidePreview();
 				deselectAll();
-			}
-			
-			e.preventDefault();
-		}
-		
-		function onFromHtmlButtonClick(e) {
-			// Load areas from html
-			from_html_form.show();
-			
-			e.preventDefault();
-		}
-		
-		function onToHtmlButtonClick(e) {
-			// Generate html code only
-			info.unload();
-			code.print();
-			
-			e.preventDefault();
-		}
-		
-		function onPreviewButtonClick(e) {
-			if (app.getMode() === 'preview') {
-				app.setMode(null)
-				   .hidePreview();
-				deselectAll();
-			} else {
-				app.deselectAll()
-				   .setMode('preview')
-				   .setDefaultClass()
-				   .preview();
-				selectOne(this);
-			}
-			
-			e.preventDefault();
-		}
-		
-		function onEditButtonClick(e) {
-			if (app.getMode() === 'editing') {
-				app.setMode(null)
-				   .setDefaultClass()
-				   .deselectAll();
-				deselectAll();
-				utils.show(svg);
-			} else {
-				app.setShape(null)
-				   .setMode('editing')
-				   .setEditClass();
-				selectOne(this);
-			}
-			app.hidePreview();
-			e.preventDefault();
-		}
-		
-		function onNewImageButtonClick(e) {
+			}    
+        },
+		'new_image' : function() {
 			// New image - clear all and back to loading image screen
 			if(confirm('Discard all changes?')) {
 				app.setMode(null)
@@ -1295,35 +1125,63 @@ function SummerHtmlImageMapCreator() {
 				   .setShape(null)
 				   .setIsDraw(false)
 				   .clear()
-				   .hide()
 				   .hidePreview();
-				deselectAll();
 				get_image.show();
-			} 
-			
-			e.preventDefault();
-		}
-		
-		function onShowHelpButtonClick(e) {
-			help.show();
-			
-			e.preventDefault();
-		}
-		
-		save.addEventListener('click', onSaveButtonClick, false);
-		load.addEventListener('click', onLoadButtonClick, false);
-		rectangle.addEventListener('click', onShapeButtonClick, false);
-		circle.addEventListener('click', onShapeButtonClick, false);
-		polygon.addEventListener('click', onShapeButtonClick, false);
-		clear.addEventListener('click', onClearButtonClick, false);
-		from_html.addEventListener('click', onFromHtmlButtonClick, false);
-		to_html.addEventListener('click', onToHtmlButtonClick, false);
-		preview.addEventListener('click', onPreviewButtonClick, false);
-		edit.addEventListener('click', onEditButtonClick, false);
-		new_image.addEventListener('click', onNewImageButtonClick, false);
-		show_help.addEventListener('click', onShowHelpButtonClick, false);
-	})();
-
+			}     
+        },
+		'show_help' : function() {
+			help.show();    
+        }
+    });
+	
+	// Toolbox
+	var menu = new App.Toolbox(utils.dom.id('toolbox'), {
+        'rect' : function() {
+			app.setMode('drawing')
+			   .setDrawClass()
+			   .setShape('rect')
+			   .hidePreview();
+			info.unload();    
+        },
+		'circle' : function() {
+			app.setMode('drawing')
+			   .setDrawClass()
+			   .setShape('circle')
+			   .hidePreview();
+			info.unload();   
+        },
+		'polygon' : function() {
+			app.setMode('drawing')
+			   .setDrawClass()
+			   .setShape('polygon')
+			   .hidePreview();
+			info.unload();     
+        },
+		'edit' : function() {
+			if (app.getMode() === 'editing') {
+				app.setMode(null)
+				   .setDefaultClass()
+				   .deselectAll();
+				utils.show(svg);
+			} else {
+				app.setShape(null)
+				   .setMode('editing')
+				   .setEditClass();
+			}
+			app.hidePreview();    
+        },
+		'preview' : function() {
+			if (app.getMode() === 'preview') {
+				app.setMode(null)
+				   .hidePreview();
+			} else {
+				app.deselectAll()
+				   .setMode('preview')
+				   .setDefaultClass()
+				   .preview();
+			}   
+        }
+    });
 
 	/* AppEvent constructor */
 	function AppEvent(target, eventType, func) {
@@ -1345,14 +1203,14 @@ function SummerHtmlImageMapCreator() {
 		this.helper.setAttribute('class', 'helper');
 		this.helper.setAttribute('height', 5);
 		this.helper.setAttribute('width', 5);
-		this.helper.setAttribute('x', x-3);
-		this.helper.setAttribute('y', y-3);
+		this.helper.setAttribute('x', x - 3);
+		this.helper.setAttribute('y', y - 3);
 		node.appendChild(this.helper);
 	};
 
 	Helper.prototype.setCoords = function(x, y) {
-		this.helper.setAttribute('x', x-3);
-		this.helper.setAttribute('y', y-3);
+		this.helper.setAttribute('x', x - 3);
+		this.helper.setAttribute('y', y - 3);
 		
 		return this;
 	};
@@ -1364,7 +1222,7 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Helper.prototype.setCursor = function(cursor) {
-		utils.addClass(this.helper, cursor);
+		utils.own.addSVGClass(this.helper, cursor);
 		
 		return this;
 	};
@@ -1515,14 +1373,14 @@ function SummerHtmlImageMapCreator() {
 		var _n_f = app.getNewArea(),
 		    square = e.shiftKey ? true : false;
 			
-		_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY), square);
+		_n_f.dynamicDraw(utils.own.rightX(e.pageX), utils.own.rightY(e.pageY), square);
 	};
 	
 	Rect.prototype.onDrawStop = function(e) {
 		var _n_f = app.getNewArea(),
 		    square = e.shiftKey ? true : false;
 		
-		_n_f.setParams(_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY), square)).deselect();
+		_n_f.setParams(_n_f.dynamicDraw(utils.own.rightX(e.pageX), utils.own.rightY(e.pageY), square)).deselect();
 		
 		app.removeAllEvents()
 		   .setIsDraw(false)
@@ -1668,25 +1526,25 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Rect.prototype.select = function() {
-		utils.addClass(this.rect, 'selected');
+		utils.own.addSVGClass(this.rect, 'selected');
 		
 		return this;
 	};
 	
 	Rect.prototype.deselect = function() {
-		utils.removeClass(this.rect, 'selected');
+		utils.own.removeSVGClass(this.rect, 'selected');
 		
 		return this;
 	};
 	
 	Rect.prototype.with_href = function() {
-		utils.addClass(this.rect, 'with_href');
+		utils.addSVGClass(this.rect, 'with_href');
 		
 		return this;
 	}
 	
 	Rect.prototype.without_href = function() {
-		utils.removeClass(this.rect, 'with_href');
+		utils.removeSVGClass(this.rect, 'with_href');
 		
 		return this;
 	}
@@ -1843,12 +1701,12 @@ function SummerHtmlImageMapCreator() {
 	
 	Circle.prototype.onDraw = function(e) {
 		var _n_f = app.getNewArea();
-		_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY));
+		_n_f.dynamicDraw(utils.own.rightX(e.pageX), utils.own.rightY(e.pageY));
 	};
 
 	Circle.prototype.onDrawStop = function(e) {
 		var _n_f = app.getNewArea();
-		_n_f.setParams(_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY))).deselect();
+		_n_f.setParams(_n_f.dynamicDraw(utils.own.rightX(e.pageX), utils.own.rightY(e.pageY))).deselect();
 
 		app.removeAllEvents()
 		   .setIsDraw(false)
@@ -1927,25 +1785,25 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Circle.prototype.select = function() {
-		utils.addClass(this.circle, 'selected');
+		utils.own.addSVGClass(this.circle, 'selected');
 		
 		return this;
 	};
 	
 	Circle.prototype.deselect = function() {
-		utils.removeClass(this.circle, 'selected');
+		utils.own.removeSVGClass(this.circle, 'selected');
 		
 		return this;
 	};
 	
 	Circle.prototype.with_href = function() {
-		utils.addClass(this.circle, 'with_href');
+		utils.addSVGClass(this.circle, 'with_href');
 		
 		return this;
 	}
 	
 	Circle.prototype.without_href = function() {
-		utils.removeClass(this.circle, 'with_href');
+		utils.removeSVGClass(this.circle, 'with_href');
 		
 		return this;
 	}
@@ -2131,12 +1989,12 @@ function SummerHtmlImageMapCreator() {
 		var _n_f = app.getNewArea();
 		var right_angle = e.shiftKey ? true : false;
 			
-		_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY), right_angle);
+		_n_f.dynamicDraw(utils.own.rightX(e.pageX), utils.own.rightY(e.pageY), right_angle);
 	};
 
 	Polygon.prototype.onDrawAddPoint = function(e) {
-		var x = utils.rightX(e.pageX),
-			y = utils.rightY(e.pageY),
+		var x = utils.own.rightX(e.pageX),
+			y = utils.own.rightY(e.pageY),
 		
 		_n_f = app.getNewArea();
 			
@@ -2212,13 +2070,13 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Polygon.prototype.select = function() {
-		utils.addClass(this.polygon, 'selected');
+		utils.own.addSVGClass(this.polygon, 'selected');
 		
 		return this;
 	};
 	
 	Polygon.prototype.deselect = function() {
-		utils.removeClass(this.polygon, 'selected');
+		utils.own.removeSVGClass(this.polygon, 'selected');
 		
 		return this;
 	};
@@ -2230,7 +2088,7 @@ function SummerHtmlImageMapCreator() {
 	}
 	
 	Polygon.prototype.without_href = function() {
-		utils.removeClass(this.polygon, 'with_href');
+		utils.own.removeSVGClass(this.polygon, 'with_href');
 		
 		return this;
 	}
