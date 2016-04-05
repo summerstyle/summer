@@ -2,10 +2,8 @@
  * Summer html image map creator
  * http://github.com/summerstyle/summer
  *
- * Copyright 2013 Vera Lobacheva (summerstyle.ru)
- * Released under the GPL3 (GPL3.txt)
- *
- * Thu May 15 2013 15:15:27 GMT+0400
+ * Copyright 2016 Vera Lobacheva (http://iamvera.com)
+ * Released under the MIT license
  */
 
 "use strict";
