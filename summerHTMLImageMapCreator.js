@@ -6,150 +6,146 @@
  * Released under the MIT license
  */
 
-"use strict";
+'use strict';
 
-function SummerHtmlImageMapCreator() {
+var summerHtmlImageMapCreator = (function() {
 
     /* Utilities */
     var utils = {
-        offsetX : function(node) {
-            var box = node.getBoundingClientRect(),
-                scroll = window.pageXOffset;
-                
-            return Math.round(box.left + scroll);
+        /**
+         * Returns offset from html page top-left corner for some element
+         *
+         * @param node {HTMLElement} - html element
+         * @returns {Object} - object with offsets, e.g. {x: 100, y: 200}
+         */
+        getOffset : function(node) {
+            var boxCoords = node.getBoundingClientRect();
+        
+            return {
+                x : Math.round(boxCoords.left + window.pageXOffset),
+                y : Math.round(boxCoords.top + window.pageYOffset)
+            };
         },
-        offsetY : function(node) {
-            var box = node.getBoundingClientRect(),
-                scroll = window.pageYOffset;
-                
-            return Math.round(box.top + scroll);
+        
+        /**
+         * Returns correct coordinates (incl. offsets)
+         *
+         * @param x {number} - x-coordinate
+         * @param y {number} - y-coordinate
+         * @returns {Object} - object with recalculated coordinates, e.g. {x: 100, y: 200}
+         */ 
+        getRightCoords : function(x, y) {
+            return {
+                x : x - app.getOffset('x'),
+                y : y - app.getOffset('y')
+            };
         },
-        rightX : function(x) {
-            return x-app.getOffset('x');
-        },
-        rightY : function(y) {
-            return y-app.getOffset('y');
-        },
-        trim : function(str) {
-            return str.replace(/^\s+|\s+$/g, '');
-        },
+        
+        /**
+         * TODO: will use same method of app.js
+         * @deprecated
+         */
         id : function (str) {
             return document.getElementById(str);
         },
+        
+        /**
+         * TODO: will use same method of app.js
+         * @deprecated
+         */
         hide : function(node) {
             node.style.display = 'none';
             
             return this;
         },
+        
+        /**
+         * TODO: will use same method of app.js
+         * @deprecated
+         */
         show : function(node) {
             node.style.display = 'block';
             
             return this;
         },
+        
+        /**
+         * Escape < and > (for code output)
+         *
+         * @param str {string} - a string with < and >
+         * @returns {string} - a string with escaped < and >
+         */
         encode : function(str) {
             return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
         },
+        
+        /**
+         * TODO: will use same method of app.js
+         * @deprecated
+         */
         foreach : function(arr, func) {
             for(var i = 0, count = arr.length; i < count; i++) {
                 func(arr[i], i);
             }
         },
+        
+        /**
+         * TODO: will use same method of app.js
+         * @deprecated
+         */
         foreachReverse : function(arr, func) {
             for(var i = arr.length - 1; i >= 0; i--) {
                 func(arr[i], i);
             }
         },
+        
+        /**
+         * Display debug info to some block
+         */
         debug : (function() {
             var output = document.getElementById('debug');
             
             return function() {
                 output.innerHTML = [].join.call(arguments, ' ');
-            }
+            };
         })(),
+        
+        /**
+         * TODO: will use same method of app.js
+         * @deprecated
+         */
         stopEvent : function(e) {
             e.stopPropagation();
             e.preventDefault();
             
             return this;
         },
-        addClass : function(node, str) {
-            // node.className.baseVal for SVG-elements
-            // or node.className for
-            // HTML-elements
-            var is_svg = node.className.baseVal !== undefined ? true : false,
-                arr = is_svg ? node.className.baseVal.split(' ') : node.className.split(' '),
-                isset = false;
-
-            utils.foreach(arr, function(x) {
-                if(x === str) {
-                    isset = true;
-                }
-            });
-
-            if (!isset) {
-                arr.push(str);
-                is_svg ? node.className.baseVal = arr.join(' ') : node.className = arr.join(' ');
-            }
-
-            return this;
-        },
-        removeClass : function(node, str) {
-            var is_svg = node.className.baseVal !== undefined ? true : false,
-                arr = is_svg ? node.className.baseVal.split(' ') : node.className.split(' '),
-                isset = false;
-
-            utils.foreach(arr, function(x, i) {
-                if(x === str) {
-                    isset = true;
-                    arr.splice(i--, 1);
-                }
-            });
-
-            if (isset) {
-                is_svg ? node.className.baseVal = arr.join(' ') : node.className = arr.join(' ');
-            }
-
-            return this;
-        },
-        hasClass : function(node, str) {
-            var is_svg = node.className.baseVal !== undefined ? true : false,
-                arr = is_svg ? node.className.baseVal.split(' ') : node.className.split(' '),
-                isset = false;
-
-            utils.foreach(arr, function(x) {
-                if(x === str) {
-                    isset = true;
-                }
-            });
-
-            return isset;
-        },
+        
+        /**
+         * TODO: will use same method of app.js
+         * @deprecated
+         */
         extend : function(obj, options) {
             var target = {};
 
-            for (name in obj) {
+            for (var name in obj) {
                 if(obj.hasOwnProperty(name)) {
                     target[name] = options[name] ? options[name] : obj[name];
                 }
             }
 
             return target;
-        },
-        supportFileReader : (function() {
-            return (typeof FileReader !== 'undefined');
-        })()
+        }
     };
 
 
     /* Main object */
     var app = (function() {
-        var body = document.getElementsByTagName('body')[0],
-            wrapper = utils.id('wrapper'),
+        var wrapper = utils.id('wrapper'),
             svg = utils.id('svg'),
             img = utils.id('img'),
             img_src = null,
             container = utils.id('image'),
-            about = utils.id('about'),
             coords_info = utils.id('coords'),
             offset = {x: 0, y: 0},
             shape = null,
@@ -176,9 +172,8 @@ function SummerHtmlImageMapCreator() {
             };
 
         function recalcOffsetValues() {
-            offset.x = utils.offsetX(container);
-            offset.y = utils.offsetY(container);
-        };
+            offset = utils.getOffset(container);
+        }
 
         /* Get offset value */
         window.addEventListener('resize', recalcOffsetValues, false);
@@ -193,7 +188,9 @@ function SummerHtmlImageMapCreator() {
 
         /* Display cursor coordinates info */
         container.addEventListener('mousemove', function(e){
-            coords_info.innerHTML = 'x: ' + utils.rightX(e.pageX) + ', ' + 'y: ' + utils.rightY(e.pageY);
+            var rightCoords = utils.getRightCoords(e.pageX, e.pageY);
+            
+            coords_info.innerHTML = 'x: ' + rightCoords.x + ', ' + 'y: ' + rightCoords.y;
         }, false);
 
         container.addEventListener('mouseleave', function(){
@@ -214,7 +211,7 @@ function SummerHtmlImageMapCreator() {
                         'y' : e.pageY
                     };
     
-                    if (utils.hasClass(e.target, 'helper')) {
+                    if (e.target.classList.contains('helper')) {
                         var helper = e.target;
                         edit_type = helper.action;
     
@@ -229,7 +226,7 @@ function SummerHtmlImageMapCreator() {
                         
                         app.addEvent(container, 'mousemove', selected_area.onEdit)
                            .addEvent(container, 'mouseup', selected_area.onEditStop);
-                    };
+                    }
                 } else {
                     app.deselectAll();
                     info.unload();
@@ -245,21 +242,21 @@ function SummerHtmlImageMapCreator() {
                 code.hide();
                 switch (shape) {
                     case 'rect':
-                        new_area = new Rect(utils.rightX(e.pageX), utils.rightY(e.pageY));
+                        new_area = new Rect(utils.getRightCoords(e.pageX, e.pageY));
                         
                         app.addEvent(container, 'mousemove', new_area.onDraw)
                            .addEvent(container, 'click', new_area.onDrawStop);
                             
                         break;
                     case 'circle':
-                        new_area = new Circle(utils.rightX(e.pageX), utils.rightY(e.pageY));
+                        new_area = new Circle(utils.getRightCoords(e.pageX, e.pageY));
                             
                         app.addEvent(container, 'mousemove', new_area.onDraw)
                            .addEvent(container, 'click', new_area.onDrawStop);
                         
                         break;
                     case 'polygon':
-                        new_area = new Polygon(utils.rightX(e.pageX), utils.rightY(e.pageY));
+                        new_area = new Polygon(utils.getRightCoords(e.pageX, e.pageY));
                         
                         app.addEvent(container, 'mousemove', new_area.onDraw)
                            .addEvent(container, 'click', new_area.onDrawAddPoint)
@@ -267,24 +264,11 @@ function SummerHtmlImageMapCreator() {
                            .addEvent(new_area.helpers[0].helper, 'click', new_area.onDrawStop);
                         
                     break;
-                };  
-            };
-        };
+                }  
+            }
+        }
     
         container.addEventListener('click', onSvgClick, false);
-        
-        /* Bug with keydown event for SVG in Opera browser
-           (when hot keys don't work after focusing on svg element) */
-        
-        function operaSvgKeydownBugFix() {
-            window.focus();
-        }
-        if (window.navigator.appName === 'Opera') {
-            container.addEventListener('mousedown', operaSvgKeydownBugFix, false);
-            container.addEventListener('mouseup', operaSvgKeydownBugFix, false);
-            container.addEventListener('click', operaSvgKeydownBugFix, false);
-            container.addEventListener('dblclick', operaSvgKeydownBugFix, false);
-        };
         
         /* Add dblclick event for svg */
         function onAreaDblClick(e) {
@@ -620,18 +604,21 @@ function SummerHtmlImageMapCreator() {
                 return this;
             },
             setEditClass : function() {
-                utils.removeClass(container, 'draw')
-                     .addClass(container, 'edit');
+                container.classList.remove('draw');
+                container.classList.add('edit');
+
                 return this;
             },
             setDrawClass : function() {
-                utils.removeClass(container, 'edit')
-                      .addClass(container, 'draw');
+                container.classList.remove('edit');
+                container.classList.add('draw');
+
                 return this;
             },
             setDefaultClass : function() {
-                utils.removeClass(container, 'edit')
-                     .removeClass(container, 'draw');
+                container.classList.remove('edit');
+                container.classList.remove('draw');
+
                 return this;
             },
             addEvent : function(target, eventType, func) {
@@ -733,9 +720,9 @@ function SummerHtmlImageMapCreator() {
             temp_y;
         
         function changedReset() {
-            utils.removeClass(form, 'changed');
+            form.classList.remove('changed');
             utils.foreach(sections, function(x) {
-                utils.removeClass(x, 'changed');
+                x.classList.remove('changed');
             });
         }
         
@@ -775,8 +762,8 @@ function SummerHtmlImageMapCreator() {
         }
         
         function change() {
-            utils.addClass(form, 'changed');
-            utils.addClass(this.parentNode, 'changed');
+            form.classList.add('changed');
+            this.parentNode.classList.add('changed');
         }
         
         save_button.addEventListener('click', save, false);
@@ -961,10 +948,6 @@ function SummerHtmlImageMapCreator() {
                 dropzone_clear_button = dropzone.querySelector('.clear_button'),
                 sm_img = utils.id('sm_img');
             
-            if (!utils.supportFileReader) { // For IE9
-                utils.hide(utils.id('file_reader_support'));
-            };
-            
             function testFile(type) {
                 switch (type) {
                 case 'image/jpeg':
@@ -991,7 +974,7 @@ function SummerHtmlImageMapCreator() {
                     file = e.dataTransfer.files[0];
                 
                 if (testFile(file.type)) {
-                    utils.removeClass(dropzone, 'error');
+                    dropzone.classList.remove('error');
                     
                     reader.readAsDataURL(file);
                     
@@ -1004,7 +987,7 @@ function SummerHtmlImageMapCreator() {
                     };
                 } else {
                     clearDropzone();
-                    utils.addClass(dropzone, 'error');
+                    dropzone.classList.add('error');
                 }
     
             }, false);
@@ -1013,11 +996,12 @@ function SummerHtmlImageMapCreator() {
                 sm_img.src = '';
                 
                 utils.hide(sm_img)
-                     .hide(dropzone_clear_button)
-                     .removeClass(dropzone, 'error');
+                     .hide(dropzone_clear_button);
+                     
+                dropzone.classList.remove('error');
                      
                 last_changed = url_input;
-            };
+            }
             
             dropzone_clear_button.addEventListener('click', clearDropzone, false);
     
@@ -1045,7 +1029,7 @@ function SummerHtmlImageMapCreator() {
                 url_clear_button = url.parentNode.querySelector('.clear_button');
             
             function testUrl(str) {
-                var url_str = utils.trim(str),
+                var url_str = str.trim(),
                     temp_array = url_str.split('.'),
                     ext;
     
@@ -1083,9 +1067,9 @@ function SummerHtmlImageMapCreator() {
             function clearUrl() {
                 url.value = '';
                 utils.hide(url_clear_button);
-                utils.removeClass(url, 'error');
+                url.classList.remove('error');
                 last_changed = url_input;
-            };
+            }
             
             url_clear_button.addEventListener('click', clearUrl, false);
     
@@ -1097,18 +1081,18 @@ function SummerHtmlImageMapCreator() {
                 },
                 test : function() {
                     if(testUrl(url.value)) {
-                        utils.removeClass(url, 'error');
+                        url.classList.remove('error');
                         return true;
                     } else {
-                        utils.addClass(url, 'error');
-                    };
+                        url.classList.add('error');
+                    }
                     return false;
                 },
                 getImage : function() {
                     var tmp_arr = url.value.split('/');
                         filename = tmp_arr[tmp_arr.length - 1];
                         
-                    return utils.trim(url.value)
+                    return url.value.trim();
                 }
             };
         })();
@@ -1187,13 +1171,13 @@ function SummerHtmlImageMapCreator() {
         
         function deselectAll() {
             utils.foreach(all, function(x) {
-                utils.removeClass(x, 'selected');
+                x.classList.remove('selected');
             });
         }
         
         function selectOne(button) {
             deselectAll();
-            utils.addClass(button, 'selected');
+            button.classList.add('selected');
         }
         
         function onSaveButtonClick(e) {
@@ -1363,7 +1347,7 @@ function SummerHtmlImageMapCreator() {
     };
     
     Helper.prototype.setCursor = function(cursor) {
-        utils.addClass(this.helper, cursor);
+        this.helper.classList.add(cursor);
         
         return this;
     };
@@ -1374,13 +1358,18 @@ function SummerHtmlImageMapCreator() {
         return this;
     };
 
-    /* Rectangle constructor */
-    var Rect = function (x, y){
+    /**
+     * The constructor for rectangles
+     *
+     * @constructor
+     * @param coords {Object} - coordinates of the begin pointer, e.g. {x: 100, y: 200}
+     */
+    var Rect = function(coords) {
         app.setIsDraw(true);
     
         this.params = {
-            x : x, //distance from the left edge of the image to the left side of the rectangle
-            y : y, //distance from the top edge of the image to the top side of the rectangle
+            x : coords.x, //distance from the left edge of the image to the left side of the rectangle
+            y : coords.y, //distance from the top edge of the image to the top side of the rectangle
             width : 0, //width of rectangle
             height : 0 //height of rectangle
         };
@@ -1397,15 +1386,15 @@ function SummerHtmlImageMapCreator() {
         this.g.obj = this; /* Link to parent object */
         
         this.helpers = { //object with all helpers-rectangles
-            center : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            top : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            bottom : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            left : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            right : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            top_left : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            top_right : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            bottom_left : new Helper(this.g, x-this.params.width/2, y-this.params.height/2),
-            bottom_right : new Helper(this.g, x-this.params.width/2, y-this.params.height/2)
+            center : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
+            top : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
+            bottom : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
+            left : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
+            right : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
+            top_left : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
+            top_right : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
+            bottom_left : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
+            bottom_right : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2)
         };
         
         this.helpers.center.setAction('move').setCursor('move');
@@ -1512,16 +1501,18 @@ function SummerHtmlImageMapCreator() {
     
     Rect.prototype.onDraw = function(e) {
         var _n_f = app.getNewArea(),
-            square = e.shiftKey ? true : false;
+            square = e.shiftKey ? true : false,
+            coords = utils.getRightCoords(e.pageX, e.pageY);
             
-        _n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY), square);
+        _n_f.dynamicDraw(coords.x, coords.y, square);
     };
     
     Rect.prototype.onDrawStop = function(e) {
         var _n_f = app.getNewArea(),
-            square = e.shiftKey ? true : false;
+            square = e.shiftKey ? true : false,
+            coords = utils.getRightCoords(e.pageX, e.pageY);
         
-        _n_f.setParams(_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY), square)).deselect();
+        _n_f.setParams(_n_f.dynamicDraw(coords.x, coords.y, square)).deselect();
         
         app.removeAllEvents()
            .setIsDraw(false)
@@ -1667,28 +1658,28 @@ function SummerHtmlImageMapCreator() {
     };
     
     Rect.prototype.select = function() {
-        utils.addClass(this.rect, 'selected');
+        this.rect.classList.add('selected');
         
         return this;
     };
     
     Rect.prototype.deselect = function() {
-        utils.removeClass(this.rect, 'selected');
+        this.rect.classList.remove('selected');
         
         return this;
     };
     
     Rect.prototype.with_href = function() {
-        utils.addClass(this.rect, 'with_href');
+        this.rect.classList.add('with_href');
         
         return this;
-    }
+    };
     
     Rect.prototype.without_href = function() {
-        utils.removeClass(this.rect, 'with_href');
+        this.rect.classList.remove('with_href');
         
         return this;
-    }
+    };
     
     Rect.prototype.toString = function() { //to html map area code
         var x2 = this.params.x + this.params.width,
@@ -1746,13 +1737,18 @@ function SummerHtmlImageMapCreator() {
     };
     
 
-    /* Circle constructor */
-    var Circle = function (x, y){
+    /**
+     * The constructor for circles
+     *
+     * @constructor
+     * @param coords {Object} - coordinates of the begin pointer, e.g. {x: 100, y: 200}
+     */
+    var Circle = function (coords) {
         app.setIsDraw(true);
     
         this.params = {
-            cx : x, //distance from the left edge of the image to the center of the circle
-            cy : y, //distance from the top edge of the image to the center of the circle
+            cx : coords.x, //distance from the left edge of the image to the center of the circle
+            cy : coords.y, //distance from the top edge of the image to the center of the circle
             radius : 0 //radius of the circle
         };
         
@@ -1768,11 +1764,11 @@ function SummerHtmlImageMapCreator() {
         this.g.obj = this; /* Link to parent object */
     
         this.helpers = { //array of all helpers-rectangles
-            center : new Helper(this.g, x, y),
-            top : new Helper(this.g, x, y),
-            bottom : new Helper(this.g, x, y),
-            left : new Helper(this.g, x, y),
-            right : new Helper(this.g, x, y)
+            center : new Helper(this.g, coords.x, coords.y),
+            top : new Helper(this.g, coords.x, coords.y),
+            bottom : new Helper(this.g, coords.x, coords.y),
+            left : new Helper(this.g, coords.x, coords.y),
+            right : new Helper(this.g, coords.x, coords.y)
         };
         
         this.helpers.center.setAction('move');
@@ -1841,13 +1837,15 @@ function SummerHtmlImageMapCreator() {
     };
     
     Circle.prototype.onDraw = function(e) {
-        var _n_f = app.getNewArea();
-        _n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY));
+        var _n_f = app.getNewArea(),
+            coords = utils.getRightCoords(e.pageX, e.pageY);
+        _n_f.dynamicDraw(coords.x, coords.y);
     };
     
     Circle.prototype.onDrawStop = function(e) {
-        var _n_f = app.getNewArea();
-        _n_f.setParams(_n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY))).deselect();
+        var _n_f = app.getNewArea(),
+            coords = utils.getRightCoords(e.pageX, e.pageY);
+        _n_f.setParams(_n_f.dynamicDraw(coords.x, coords.y)).deselect();
     
         app.removeAllEvents()
            .setIsDraw(false)
@@ -1926,25 +1924,25 @@ function SummerHtmlImageMapCreator() {
     };
     
     Circle.prototype.select = function() {
-        utils.addClass(this.circle, 'selected');
+        this.circle.classList.add('selected');
         
         return this;
     };
     
     Circle.prototype.deselect = function() {
-        utils.removeClass(this.circle, 'selected');
+        this.circle.classList.remove('selected');
         
         return this;
     };
     
     Circle.prototype.with_href = function() {
-        utils.addClass(this.circle, 'with_href');
+        this.circle.classList.add('with_href');
         
         return this;
     }
     
     Circle.prototype.without_href = function() {
-        utils.removeClass(this.circle, 'with_href');
+        this.circle.classList.remove('with_href');
         
         return this;
     }
@@ -2000,11 +1998,16 @@ function SummerHtmlImageMapCreator() {
         }
     };
 
-    /* Polygon constructor */
-    var Polygon = function(x, y){
+    /**
+     * The constructor for polygons
+     *
+     * @constructor
+     * @param coords {Object} - coordinates of the begin pointer, e.g. {x: 100, y: 200}
+     */
+    var Polygon = function(coords) {
         app.setIsDraw(true);
     
-        this.params = [x, y]; //array of coordinates of polygon points
+        this.params = [coords.x, coords.y]; //array of coordinates of polygon points
     
         this.href = ''; //href attribute - not required
         this.alt = ''; //alt attribute - not required
@@ -2126,24 +2129,23 @@ function SummerHtmlImageMapCreator() {
     };
     
     Polygon.prototype.onDraw = function(e) {
-        var _n_f = app.getNewArea();
-        var right_angle = e.shiftKey ? true : false;
+        var _n_f = app.getNewArea(),
+            right_angle = e.shiftKey,
+            coords = utils.getRightCoords(e.pageX, e.pageY);
             
-        _n_f.dynamicDraw(utils.rightX(e.pageX), utils.rightY(e.pageY), right_angle);
+        _n_f.dynamicDraw(coords.x, coords.y, right_angle);
     };
     
     Polygon.prototype.onDrawAddPoint = function(e) {
-        var x = utils.rightX(e.pageX),
-            y = utils.rightY(e.pageY),
-        
-        _n_f = app.getNewArea();
+        var _n_f = app.getNewArea(),
+            coords = utils.getRightCoords(e.pageX, e.pageY);
             
         if (e.shiftKey) {
-            var right_coords = _n_f.right_angle(x, y);
+            var right_coords = _n_f.right_angle(coords.x, coords.y);
             x = right_coords.x;
             y = right_coords.y;
         }
-        _n_f.addPoint(x, y);
+        _n_f.addPoint(coords.x, coords.y);
     };
     
     Polygon.prototype.onDrawStop = function(e) {
@@ -2210,25 +2212,25 @@ function SummerHtmlImageMapCreator() {
     };
     
     Polygon.prototype.select = function() {
-        utils.addClass(this.polygon, 'selected');
+        this.polygon.classList.add('selected');
     
         return this;
     };
     
     Polygon.prototype.deselect = function() {
-        utils.removeClass(this.polygon, 'selected');
+        this.polygon.classList.remove('selected');
     
         return this;
     };
     
     Polygon.prototype.with_href = function() {
-        utils.addClass(this.polygon, 'with_href');
+        this.polygon.classList.add('with_href');
     
         return this;
     }
     
     Polygon.prototype.without_href = function() {
-        utils.removeClass(this.polygon, 'with_href');
+        this.polygon.classList.remove('with_href');
     
         return this;
     }
@@ -2292,6 +2294,4 @@ function SummerHtmlImageMapCreator() {
         }
     };
 
-};
-
-document.addEventListener("DOMContentLoaded", SummerHtmlImageMapCreator, false);
+})();
