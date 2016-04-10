@@ -496,11 +496,11 @@ var summerHtmlImageMapCreator = (function() {
             saveInLocalStorage : localStorageWrapper.save,
             loadFromLocalStorage : localStorageWrapper.restore,
             hide : function() {
-                utils.hide(domElements.wrapper);
+                utils.hide(domElements.container);
                 return this;
             },
             show : function() {
-                utils.show(domElements.wrapper);
+                utils.show(domElements.container);
                 return this;
             },
             recalcOffsetValues: function() {
@@ -971,6 +971,7 @@ var summerHtmlImageMapCreator = (function() {
     /* Get image form */
     var get_image = (function() {
         var block = utils.id('get_image_wrapper'),
+            close_button = block.querySelector('.close_button'),
             loading_indicator = utils.id('loading'),
             button = utils.id('button'),
             filename = null,
@@ -1047,14 +1048,13 @@ var summerHtmlImageMapCreator = (function() {
                          .hide(dropzone_clear_button);
                 },
                 test : function() {
-                    return sm_img.src ? true : false;
+                    return Boolean(sm_img.src);
                 },
                 getImage : function() {
                     return sm_img.src;
                 }
             };
         })();
-        
         
         /* Set a url - the second way to loading an image */
         var url_input = (function() {
@@ -1158,16 +1158,28 @@ var summerHtmlImageMapCreator = (function() {
         
         button.addEventListener('click', onButtonClick, false);
         
+        close_button.addEventListener('click', hide, false);
+        
+        function show() {
+            clear();
+            utils.show(block);
+        }
+        
+        function hide() {
+            utils.hide(block);
+        }
+        
         /* Returned object */
         return {
             show : function() {
-                clear();
-                utils.show(block);
+                app.hide();
+                show();
                 
                 return this;
             },
             hide : function() {
-                utils.hide(block);
+                app.show();
+                hide();
                 
                 return this;
             },
@@ -1183,6 +1195,7 @@ var summerHtmlImageMapCreator = (function() {
             }
         };
     })();
+    get_image.show();
     
 
     /* Buttons and actions */
