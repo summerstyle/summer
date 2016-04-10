@@ -1353,32 +1353,47 @@ var summerHtmlImageMapCreator = (function() {
     };
 
 
-    /* Helper constructor */
-    function Helper(node, x, y) {
+    /**
+     * The constructor of helpers points
+     * 
+     * @constructor
+     * @param node {parentNode} - a node for inserting helper
+     * @param x {number} - x - coordinate
+     * @param y {number} - y - coordinate
+     * @param action {string} - an action by click of this helper
+     */
+    function Helper(node, x, y, action) {
         this.helper = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        this.helper.setAttribute('class', 'helper');
-        this.helper.setAttribute('height', 5);
-        this.helper.setAttribute('width', 5);
-        this.helper.setAttribute('x', x-3);
-        this.helper.setAttribute('y', y-3);
+        this.helper.classList.add(Helper.CLASS_NAME);
+        this.helper.setAttribute('height', Helper.SIZE);
+        this.helper.setAttribute('width', Helper.SIZE);
+        this.helper.setAttribute('x', x + Helper.OFFSET);
+        this.helper.setAttribute('y', y + Helper.OFFSET);
         node.appendChild(this.helper);
+        
+        this.helper.action = action;
+        this.helper.classList.add(Helper.ACTIONS_TO_CURSORS[action]);
     }
+    
+    Helper.SIZE = 5;
+    Helper.OFFSET = - Math.ceil(Helper.SIZE / 2);
+    Helper.CLASS_NAME = 'helper';
+    Helper.ACTIONS_TO_CURSORS = {
+        'move': 'move',
+        'editLeft': 'e-resize',
+        'editRight': 'w-resize',
+        'editTop': 'n-resize',
+        'editBottom': 's-resize',
+        'editTopLeft': 'nw-resize',
+        'editTopRight': 'ne-resize',
+        'editBottomLeft': 'sw-resize',
+        'editBottomRight': 'se-resize',
+        'pointMove': 'pointer'
+    };
 
     Helper.prototype.setCoords = function(x, y) {
-        this.helper.setAttribute('x', x-3);
-        this.helper.setAttribute('y', y-3);
-        
-        return this;
-    };
-    
-    Helper.prototype.setAction = function(action) {
-        this.helper.action = action;
-        
-        return this;
-    };
-    
-    Helper.prototype.setCursor = function(cursor) {
-        this.helper.classList.add(cursor);
+        this.helper.setAttribute('x', x + Helper.OFFSET);
+        this.helper.setAttribute('y', y + Helper.OFFSET);
         
         return this;
     };
@@ -1393,21 +1408,21 @@ var summerHtmlImageMapCreator = (function() {
      * The constructor for rectangles
      *
      * @constructor
-     * @param coords {Object} - coordinates of the begin pointer, e.g. {x: 100, y: 200}
+     * @param coords {Object} - coordinates of the begin point, e.g. {x: 100, y: 200}
      */
     var Rect = function(coords) {
         app.setIsDraw(true);
         
         this.params = {
-            x : coords.x, //distance from the left edge of the image to the left side of the rectangle
-            y : coords.y, //distance from the top edge of the image to the top side of the rectangle
-            width : 0, //width of rectangle
-            height : 0 //height of rectangle
+            x : coords.x, // distance from the left edge of the image to the left side of the rectangle
+            y : coords.y, // distance from the top edge of the image to the top side of the rectangle
+            width : 0, // width of rectangle
+            height : 0 // height of rectangle
         };
         
-        this.href = ''; //href attribute - not required
-        this.alt = ''; //alt attribute - not required
-        this.title = ''; //title attribute - not required
+        this.href = ''; // href attribute - not required
+        this.alt = ''; // alt attribute - not required
+        this.title = ''; // title attribute - not required
     
         this.g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); //container
         this.rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); //rectangle
@@ -1416,27 +1431,20 @@ var summerHtmlImageMapCreator = (function() {
         
         this.g.obj = this; /* Link to parent object */
         
-        this.helpers = { //object with all helpers-rectangles
-            center : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
-            top : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
-            bottom : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
-            left : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
-            right : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
-            top_left : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
-            top_right : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
-            bottom_left : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2),
-            bottom_right : new Helper(this.g, coords.x-this.params.width/2, coords.y-this.params.height/2)
-        };
+        var x = coords.x - this.params.width / 2,
+            y = coords.y - this.params.height / 2;
         
-        this.helpers.center.setAction('move').setCursor('move');
-        this.helpers.left.setAction('editLeft').setCursor('e-resize');
-        this.helpers.right.setAction('editRight').setCursor('w-resize');
-        this.helpers.top.setAction('editTop').setCursor('n-resize');
-        this.helpers.bottom.setAction('editBottom').setCursor('s-resize');
-        this.helpers.top_left.setAction('editTopLeft').setCursor('nw-resize');
-        this.helpers.top_right.setAction('editTopRight').setCursor('ne-resize');
-        this.helpers.bottom_left.setAction('editBottomLeft').setCursor('sw-resize');
-        this.helpers.bottom_right.setAction('editBottomRight').setCursor('se-resize');
+        this.helpers = {
+            center : new Helper(this.g, x, y, 'move'),
+            top : new Helper(this.g, x, y, 'editTop'),
+            bottom : new Helper(this.g, x, y, 'editBottom'),
+            left : new Helper(this.g, x, y, 'editLeft'),
+            right : new Helper(this.g, x, y, 'editRight'),
+            top_left : new Helper(this.g, x, y, 'editTopLeft'),
+            top_right : new Helper(this.g, x, y, 'editTopRight'),
+            bottom_left : new Helper(this.g, x, y, 'editBottomLeft'),
+            bottom_right : new Helper(this.g, x, y, 'editBottomRight')
+        };
         
         this.select().redraw();
         
@@ -1794,18 +1802,12 @@ var summerHtmlImageMapCreator = (function() {
         this.g.obj = this; /* Link to parent object */
     
         this.helpers = { //array of all helpers-rectangles
-            center : new Helper(this.g, coords.x, coords.y),
-            top : new Helper(this.g, coords.x, coords.y),
-            bottom : new Helper(this.g, coords.x, coords.y),
-            left : new Helper(this.g, coords.x, coords.y),
-            right : new Helper(this.g, coords.x, coords.y)
+            center : new Helper(this.g, coords.x, coords.y, 'move'),
+            top : new Helper(this.g, coords.x, coords.y, 'editTop'),
+            bottom : new Helper(this.g, coords.x, coords.y, 'editBottom'),
+            left : new Helper(this.g, coords.x, coords.y, 'editLeft'),
+            right : new Helper(this.g, coords.x, coords.y, 'editRight')
         };
-        
-        this.helpers.center.setAction('move');
-        this.helpers.top.setAction('editTop').setCursor('n-resize');
-        this.helpers.bottom.setAction('editBottom').setCursor('s-resize');
-        this.helpers.left.setAction('editLeft').setCursor('w-resize');
-        this.helpers.right.setAction('editRight').setCursor('e-resize');
     
         this.select().redraw();
         
@@ -2053,11 +2055,9 @@ var summerHtmlImageMapCreator = (function() {
         this.g.obj = this; /* Link to parent object */
     
         this.helpers = [ //array of all helpers-rectangles
-            new Helper(this.g, this.params[0], this.params[1])
+            (new Helper(this.g, this.params[0], this.params[1], 'pointMove')).setId(0)
         ];
         
-        this.helpers[0].setAction('pointMove').setCursor('pointer').setId(0);
-    
         this.selected_point = -1;
         
         this.select().redraw();
@@ -2082,8 +2082,8 @@ var summerHtmlImageMapCreator = (function() {
     };
     
     Polygon.prototype.addPoint = function(x, y){
-        var helper = new Helper(this.g, x, y);
-        helper.setAction('pointMove').setCursor('pointer').setId(this.helpers.length);
+        var helper = new Helper(this.g, x, y, 'pointMove');
+        helper.setId(this.helpers.length);
         this.helpers.push(helper);
         this.params.push(x, y);
         this.redraw();
