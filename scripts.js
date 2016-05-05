@@ -816,6 +816,7 @@ function SummerHtmlImageMapCreator() {
 			layoutCustomAttrs();
 			add_attr_text.value = "";
 			e.preventDefault();
+			e.stopPropagation();
 
 		}
 
