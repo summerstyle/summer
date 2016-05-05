@@ -1125,6 +1125,8 @@ function SummerHtmlImageMapCreator() {
                     title: object.title
                 };
 
+                console.log(coords);
+
                 for (var j = 0; j < customAttrs.length; j++) {
                     var attr = customAttrs[i];
                     params[attr] = object[attr];
@@ -1142,6 +1144,7 @@ function SummerHtmlImageMapCreator() {
                         }
                         break;
                     case 'poly':
+                        console.log(params.coords.length);
                         if (params.coords.length >= 6 && params.coords.length % 2 == 0) {
                             Polygon.createFromSaved(params);
                         }
@@ -2546,7 +2549,7 @@ function SummerHtmlImageMapCreator() {
 	
 	Polygon.prototype.toJSON = function() {
 		var jsonObject = {
-			type   : 'polygon',
+			type   : 'poly',
 			coords : this.params,
 			href   : this.href,
 			alt    : this.alt,

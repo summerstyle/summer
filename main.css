@@ -179,6 +179,8 @@ a:link, a:visited {
 }
 #code_content {
     padding: 10px;
+    max-height: 400px;
+    overflow: scroll;
 }
 .close_button {
     width: 10px;
