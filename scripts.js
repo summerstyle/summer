@@ -951,7 +951,7 @@ function SummerHtmlImageMapCreator() {
 	})();
 
 	
-	/* Load areas from html code */
+	/* Load areas from html or json */
 	var from_code_form = (function() {
 		var form = utils.id('from_html_wrapper'),
 			code_input = utils.id('code_input'),
@@ -1111,7 +1111,7 @@ function SummerHtmlImageMapCreator() {
                         }
                         break;
                     case 'poly':
-                        if (params.coords.length >= 6 && object.coords.length % 2 == 0) {
+                        if (params.coords.length >= 6 && params.coords.length % 2 == 0) {
                             Polygon.createFromSaved(params);
                         }
                         break;
