@@ -1079,7 +1079,7 @@ function SummerHtmlImageMapCreator() {
             }
             app.addCustomAttributes(customAttrs);
 
-            for (var i = 0; i < objectArray.length; i++) {
+            for (var i = objectArray.length - 1; i >= 0; i--) {
                 var object = objectArray[i];
                 var params = {
                     coords: object.coords,
