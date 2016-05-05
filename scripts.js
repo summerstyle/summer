@@ -191,13 +191,15 @@ function SummerHtmlImageMapCreator() {
 				I      : 73,
 				S      : 83,
 				C      : 67,
-				BACK   : 8
+				BACK   : 8,
+                MINUS  : 189,
+                PLUS   : 187
 			};
 		
 		function recalcOffsetValues() {
 			offset.x = utils.offsetX(container);
 			offset.y = utils.offsetY(container);
-		};
+		}
 		
 		/* Get offset value */
 		window.addEventListener('resize', recalcOffsetValues, false);
@@ -374,8 +376,21 @@ function SummerHtmlImageMapCreator() {
 					
 					break;
 
+                case KEYS.MINUS: /* Minus key, move object back */
+                    if (mode === 'editing' && selected_area) {
+                        e.preventDefault();
+                        app.moveObjectBackward(selected_area);
+                    }
+                    break;
+
+                case KEYS.PLUS: /* Plus key, move object forward */
+                    if (mode === 'editing' && selected_area) {
+                        e.preventDefault();
+                        app.moveObjectForward(selected_area);
+                    }
+                    break;
+
 				case KEYS.BACK: /* Backspace key */
-					//TODO: Figure this out
 				case KEYS.DELETE: /* DELETE key */
 					if (mode === 'editing' && selected_area) {
 						app.removeObject(selected_area);
@@ -620,6 +635,22 @@ function SummerHtmlImageMapCreator() {
 				objects.push(object);
 				return this;
 			},
+            moveObjectForward: function(object) {
+                var index = objects.indexOf(object);
+                if (index == -1 || index == objects.length) {
+                    console.warn("Can't move object with index: " + index);
+                    return;
+                }
+                objects.splice(index+1, 0, objects.splice(index, 1)[0]);
+            },
+            moveObjectBackward: function(object) {
+                var index = objects.indexOf(object);
+                if (index < 1) {
+                    console.warn("Can't move object with index: " + index);
+                    return;
+                }
+                objects.splice(index-1, 0, objects.splice(index, 1)[0]);
+            },
 			getNewArea : function() {
 				return new_area;
 			},
