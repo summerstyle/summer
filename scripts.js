@@ -684,7 +684,15 @@ function SummerHtmlImageMapCreator() {
 				json += '\n]';
 				return json;
 			},
-			customAttributes: custom_attrs
+			customAttributes: custom_attrs,
+            addCustomAttributes: function(attrs) {
+                for (var i = 0; i < attrs.length; i++) {
+                    var attr = attrs[i];
+                    if (custom_attrs.indexOf(attr) == -1) {
+                        custom_attrs.push(attr);
+                    }
+                }
+            }
 		};
 	})();
 	
@@ -803,6 +811,8 @@ function SummerHtmlImageMapCreator() {
 		}
 
 		function addAttr(e) {
+            e.preventDefault();
+
 			var key = add_attr_text.value;
 			if (key == null || key == "") {
 				return;
@@ -815,7 +825,6 @@ function SummerHtmlImageMapCreator() {
 			app.customAttributes.push(key);
 			layoutCustomAttrs();
 			add_attr_text.value = "";
-			e.preventDefault();
 		}
 
 		function customAttrId(key) {
@@ -925,17 +934,18 @@ function SummerHtmlImageMapCreator() {
 
 	
 	/* Load areas from html code */
-	var from_html_form = (function() {
+	var from_code_form = (function() {
 		var form = utils.id('from_html_wrapper'),
 			code_input = utils.id('code_input'),
-			load_button = utils.id('load_code_button'),
+			load_html_button = utils.id('load_html_button'),
+			load_json_button = utils.id('load_json_button'),
 			close_button = form.querySelector('.close_button'),
 			regexp_area = /<area(?=.*? shape="(rect|circle|poly)")(?=.*? coords="([\d ,]+?)")[\s\S]*?>/gmi,
 			regexp_href = / href="([\S\s]+?)"/,
 			regexp_alt = / alt="([\S\s]+?)"/,
 			regexp_title = / title="([\S\s]+?)"/;
 		
-		function test(str) {
+		function parseHTML(str) {
 			var result_area,
 				result_href,
 				result_alt,
@@ -1027,18 +1037,84 @@ function SummerHtmlImageMapCreator() {
 				}
 			}
 		}
+
+        function parseJson(string) {
+            try {
+                var objectArray = JSON.parse(string);
+            } catch (e) {
+                console.error(e);
+            }
+
+            //TODO: Check that json is actually an array
+            if (objectArray.length == 0) {
+                return;
+            }
+
+            // Check for custom attrs on first item (should this be checked on every item?)
+            var customAttrs = [];
+            var objectAttrs = Object.keys(objectArray[0]);
+            var defaultAttrs = ["type", "alt", "href", "coords", "title"];
+            for (var i = 0; i < objectAttrs.length; i++) {
+                var attr = objectAttrs[i];
+                if (defaultAttrs.indexOf(attr) == -1) {
+                    customAttrs.push(attr);
+                }
+            }
+            app.addCustomAttributes(customAttrs);
+
+            for (var i = 0; i < objectArray.length; i++) {
+                var object = objectArray[i];
+                var params = {
+                    coords: object.coords,
+                    href: object.href,
+                    alt: object.alt,
+                    title: object.title
+                };
+
+                for (var j = 0; j < customAttrs.length; j++) {
+                    var attr = customAttrs[i];
+                    params[attr] = object[attr];
+                }
+
+                switch (object.type) {
+                    case 'rect':
+                        if (object.coords.length == 4) {
+                            Rect.createFromSaved(params);
+                        }
+                        break;
+                    case 'circle':
+                        if (object.coords.length == 3) {
+                            Circle.createFromSaved(params);
+                        }
+                        break;
+                    case 'poly':
+                        if (object.coords.length >= 6 && object.coords.length % 2 == 0) {
+                            Polygon.createFromSaved(params);
+                        }
+                        break;
+                }
+            }
+
+            hide();
+        }
 		
-		function load(e) {
-			test(code_input.value);
+		function loadHtml(e) {
+			parseHTML(code_input.value);
 				
 			e.preventDefault();
-		};
+		}
+
+        function loadJson(e) {
+            parseJson(code_input.value);
+            e.preventDefault();
+        }
 		
 		function hide() {
 			utils.hide(form);
 		}
-		
-		load_button.addEventListener('click', load, false);
+
+		load_html_button.addEventListener('click', loadHtml, false);
+        load_json_button.addEventListener('click', loadJson, false);
 		
 		close_button.addEventListener('click', hide, false);
 		
@@ -1050,7 +1126,6 @@ function SummerHtmlImageMapCreator() {
 			hide : hide
 		};
 	})();
-
 
 	/* Get image form */
 	var get_image = (function() {
@@ -1284,7 +1359,7 @@ function SummerHtmlImageMapCreator() {
 			polygon = utils.id('polygon'),
 			edit = utils.id('edit'),
 			clear = utils.id('clear'),
-			from_html = utils.id('from_html'),
+			from_code = utils.id('from_code'),
 			to_html = utils.id('to_html'),
 			to_json = utils.id('to_json'),
 			preview = utils.id('preview'),
@@ -1344,9 +1419,9 @@ function SummerHtmlImageMapCreator() {
 			e.preventDefault();
 		}
 		
-		function onFromHtmlButtonClick(e) {
+		function onFromCodeButtonClick(e) {
 			// Load areas from html
-			from_html_form.show();
+			from_code_form.show();
 			
 			e.preventDefault();
 		}
@@ -1427,7 +1502,7 @@ function SummerHtmlImageMapCreator() {
 		circle.addEventListener('click', onShapeButtonClick, false);
 		polygon.addEventListener('click', onShapeButtonClick, false);
 		clear.addEventListener('click', onClearButtonClick, false);
-		from_html.addEventListener('click', onFromHtmlButtonClick, false);
+		from_code.addEventListener('click', onFromCodeButtonClick, false);
 		to_html.addEventListener('click', onToHtmlButtonClick, false);
 		to_json.addEventListener('click', onToJsonButtonClick, false);
 		preview.addEventListener('click', onPreviewButtonClick, false);
@@ -1795,13 +1870,13 @@ function SummerHtmlImageMapCreator() {
 		utils.addClass(this.rect, 'with_href');
 		
 		return this;
-	}
+	};
 	
 	Rect.prototype.without_href = function() {
 		utils.removeClass(this.rect, 'with_href');
 		
 		return this;
-	}
+	};
 	
 	Rect.prototype.toString = function() { //to html map area code
 		var x2 = this.params.x + this.params.width,
@@ -1841,6 +1916,13 @@ function SummerHtmlImageMapCreator() {
 		if (title) {
 			area.title = title;
 		}
+
+        //Custom attrs
+        for (var i = 0; i < app.customAttributes.length; i++) {
+            var attr = app.customAttributes[i];
+            area[attr] = params[attr];
+        }
+
 	};
 	
 	Rect.prototype.toJSON = function() {
@@ -2102,6 +2184,13 @@ function SummerHtmlImageMapCreator() {
 		if (title) {
 			area.title = title;
 		}
+
+        //Custom attrs
+        for (var i = 0; i < app.customAttributes.length; i++) {
+            var attr = app.customAttributes[i];
+            area[attr] = params[attr];
+        }
+
 	};
 	
 	Circle.prototype.toJSON = function() {
@@ -2404,6 +2493,13 @@ function SummerHtmlImageMapCreator() {
 		if (title) {
 			area.title = title;
 		}
+
+        //Custom attrs
+        for (var i = 0; i < app.customAttributes.length; i++) {
+            var attr = app.customAttributes[i];
+            area[attr] = params[attr];
+        }
+
 	};
 	
 	Polygon.prototype.toJSON = function() {
