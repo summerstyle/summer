@@ -1081,8 +1081,14 @@ function SummerHtmlImageMapCreator() {
 
             for (var i = objectArray.length - 1; i >= 0; i--) {
                 var object = objectArray[i];
+                var coords = object.coords;
+
+                if (typeof coords === 'string' || coords instanceof String) {
+                    coords = JSON.parse("[" + coords + "]");
+                }
+
                 var params = {
-                    coords: object.coords,
+                    coords: coords,
                     href: object.href,
                     alt: object.alt,
                     title: object.title
@@ -1095,17 +1101,17 @@ function SummerHtmlImageMapCreator() {
 
                 switch (object.type) {
                     case 'rect':
-                        if (object.coords.length == 4) {
+                        if (params.coords.length == 4) {
                             Rect.createFromSaved(params);
                         }
                         break;
                     case 'circle':
-                        if (object.coords.length == 3) {
+                        if (params.coords.length == 3) {
                             Circle.createFromSaved(params);
                         }
                         break;
                     case 'poly':
-                        if (object.coords.length >= 6 && object.coords.length % 2 == 0) {
+                        if (params.coords.length >= 6 && object.coords.length % 2 == 0) {
                             Polygon.createFromSaved(params);
                         }
                         break;
@@ -1116,14 +1122,13 @@ function SummerHtmlImageMapCreator() {
         }
 		
 		function loadHtml(e) {
+            e.preventDefault();
 			parseHTML(code_input.value);
-				
-			e.preventDefault();
 		}
 
         function loadJson(e) {
-            parseJson(code_input.value);
             e.preventDefault();
+            parseJson(code_input.value);
         }
 		
 		function hide() {
