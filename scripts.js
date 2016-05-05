@@ -816,8 +816,6 @@ function SummerHtmlImageMapCreator() {
 			layoutCustomAttrs();
 			add_attr_text.value = "";
 			e.preventDefault();
-			e.stopPropagation();
-
 		}
 
 		function customAttrId(key) {
@@ -830,7 +828,7 @@ function SummerHtmlImageMapCreator() {
 
 				var value = "";
 				if (obj != null) {
-					value = object[key] || "";
+					value = obj[key] || "";
 				}
 
 				var id = customAttrId(key);
