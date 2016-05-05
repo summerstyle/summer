@@ -138,7 +138,23 @@ function SummerHtmlImageMapCreator() {
 		},
 		supportFileReader : (function() {
 			return (typeof FileReader !== 'undefined');
-		})()
+		})(),
+        htmlForShape: function(type, coords, object) {
+
+            var htmlString = '<area shape="' + type + '" coords="' + coords + '"' +
+                (object.href ? ' href="' + object.href + '"' : '') +
+                (object.alt ? ' alt="' + object.alt + '"' : '') +
+                (object.title ? ' title="' + object.title + '"' : '');
+
+            for (var i = 0; i < app.customAttributes.length; i++) {
+                var attr = app.customAttributes[i];
+                if (object[attr]) {
+                    htmlString += ' ' + attr + '="' + object[attr] + '"';
+                }
+            }
+            htmlString += " />";
+            return htmlString;
+        }
 	};
 	
 	
@@ -673,17 +689,19 @@ function SummerHtmlImageMapCreator() {
 				return html_code;
 			},
 			getJSON : function() {
-				var json = '[\n';
-				for (var i = 0; i < objects.length; i++) {
+                var tab = '&nbsp;&nbsp;&nbsp;&nbsp;';
+				var json = '[<br/>';
+				for (var i = objects.length - 1; i >= 0; i--) {
 					var object = objects[i];
-					if (i != 0) {
-						json += ",\n";
+					if (i != objects.length - 1) {
+						json += ",<br/>";
 					}
-					json += JSON.stringify(object.toJSON());
+					json += tab + utils.encode(JSON.stringify(object.toJSON()));
 				}
-				json += '\n]';
+				json += '<br/>]';
 				return json;
 			},
+            reservedAttributes: ["type", "alt", "href", "coords", "title"],
 			customAttributes: custom_attrs,
             addCustomAttributes: function(attrs) {
                 for (var i = 0; i < attrs.length; i++) {
@@ -818,7 +836,7 @@ function SummerHtmlImageMapCreator() {
 				return;
 			}
 
-			if (app.customAttributes.indexOf(key) > -1) {
+			if (app.reservedAttributes.indexOf(key) > -1 || app.customAttributes.indexOf(key) > -1) {
 				return;
 			}
 
@@ -1053,10 +1071,9 @@ function SummerHtmlImageMapCreator() {
             // Check for custom attrs on first item (should this be checked on every item?)
             var customAttrs = [];
             var objectAttrs = Object.keys(objectArray[0]);
-            var defaultAttrs = ["type", "alt", "href", "coords", "title"];
             for (var i = 0; i < objectAttrs.length; i++) {
                 var attr = objectAttrs[i];
-                if (defaultAttrs.indexOf(attr) == -1) {
+                if (app.reservedAttributes.indexOf(attr) == -1) {
                     customAttrs.push(attr);
                 }
             }
@@ -1881,16 +1898,13 @@ function SummerHtmlImageMapCreator() {
 	Rect.prototype.toString = function() { //to html map area code
 		var x2 = this.params.x + this.params.width,
 			y2 = this.params.y + this.params.height;
-		return '<area shape="rect" coords="'
-			+ this.params.x + ', '
-			+ this.params.y + ', '
-			+ x2 + ', '
-			+ y2
-			+ '"'
-			+ (this.href ? ' href="' + this.href + '"' : '')
-			+ (this.alt ? ' alt="' + this.alt + '"' : '')
-			+ (this.title ? ' title="' + this.title + '"' : '')
-			+ ' />';
+
+        var coords = this.params.x + ', '
+            + this.params.y + ', '
+            + x2 + ', '
+            + y2;
+        
+		return utils.htmlForShape('rect', coords, this);
 	};
 	
 	Rect.createFromSaved = function(params) {
@@ -2141,24 +2155,21 @@ function SummerHtmlImageMapCreator() {
 		utils.addClass(this.circle, 'with_href');
 		
 		return this;
-	}
+	};
 	
 	Circle.prototype.without_href = function() {
 		utils.removeClass(this.circle, 'with_href');
 		
 		return this;
-	}
+	};
 
 	Circle.prototype.toString = function() { //to html map area code
-		return '<area shape="circle" coords="'
-			+ this.params.cx + ', '
-			+ this.params.cy + ', '
-			+ this.params.radius
-			+ '"'
-			+ (this.href ? ' href="' + this.href + '"' : '')
-			+ (this.alt ? ' alt="' + this.alt + '"' : '')
-			+ (this.title ? ' title="' + this.title + '"' : '')
-			+ ' />';
+
+        var coords = this.params.cx + ', '
+            + this.params.cy + ', '
+            + this.params.radius;
+
+		return utils.htmlForShape('circle', coords, this);
 	};
 
 	Circle.createFromSaved = function(params) {
@@ -2453,13 +2464,8 @@ function SummerHtmlImageMapCreator() {
 				str += ', ';
 			}
 		}
-		return '<area shape="poly" coords="'
-			+ str
-			+ '"'
-			+ (this.href ? ' href="' + this.href + '"' : '')
-			+ (this.alt ? ' alt="' + this.alt + '"' : '')
-			+ (this.title ? ' title="' + this.title + '"' : '')
-			+ ' />';
+
+        return utils.htmlForShape('poly', str, this);
 	};
 	
 	Polygon.createFromSaved = function(params) {
