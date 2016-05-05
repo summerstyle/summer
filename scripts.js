@@ -128,7 +128,7 @@ function SummerHtmlImageMapCreator() {
 		extend : function(obj, options) {
 			var target = {};
 			
-			for (name in obj) {
+			for (var name in obj) {
 				if(obj.hasOwnProperty(name)) {
 					target[name] = options[name] ? options[name] : obj[name];
 				}
@@ -157,6 +157,7 @@ function SummerHtmlImageMapCreator() {
 			is_draw = false,
 			mode = null, // drawing || editing || preview
 			objects = [],
+			custom_attrs = [],
 			new_area = null,
 			selected_area = null,
 			edit_type,
@@ -173,7 +174,8 @@ function SummerHtmlImageMapCreator() {
 				DELETE : 46,
 				I      : 73,
 				S      : 83,
-				C      : 67
+				C      : 67,
+				BACK   : 8
 			};
 		
 		function recalcOffsetValues() {
@@ -355,12 +357,15 @@ function SummerHtmlImageMapCreator() {
 					}
 					
 					break;
-				
+
+				case KEYS.BACK: /* Backspace key */
+					//TODO: Figure this out
 				case KEYS.DELETE: /* DELETE key */
 					if (mode === 'editing' && selected_area) {
 						app.removeObject(selected_area);
 						selected_area = null;
 						info.unload();
+						e.preventDefault();
 					}
 					
 					break;
@@ -649,12 +654,14 @@ function SummerHtmlImageMapCreator() {
 			getHTMLCode : function(arg) {
 				var html_code = '';
 				if (arg) {
+					console.log(JSON.stringify(objects));
 					if (!objects.length) {
 						return '0 objects';
 					}
 					html_code += utils.encode('<img src="' + filename + '" alt="" usemap="#map" />') +
 						'<br />' + utils.encode('<map name="map">') + '<br />';
 					utils.foreachReverse(objects, function(x) {
+						console.log(x.toString());
 						html_code += '&nbsp;&nbsp;&nbsp;&nbsp;' + utils.encode(x.toString()) + '<br />';
 					});
 					html_code += utils.encode('</map>');
@@ -664,7 +671,20 @@ function SummerHtmlImageMapCreator() {
 					});
 				}
 				return html_code;
-			}
+			},
+			getJSON : function() {
+				var json = '[\n';
+				for (var i = 0; i < objects.length; i++) {
+					var object = objects[i];
+					if (i != 0) {
+						json += ",\n";
+					}
+					json += JSON.stringify(object.toJSON());
+				}
+				json += '\n]';
+				return json;
+			},
+			customAttributes: custom_attrs
 		};
 	})();
 	
@@ -716,6 +736,29 @@ function SummerHtmlImageMapCreator() {
 		};
 	})();
 
+	//TODO (stephentuso): DRY
+	/* For json of created map */
+	var codeJson = (function(){
+		var block = utils.id('code'),
+			content = utils.id('code_content'),
+			close_button = block.querySelector('.close_button');
+
+		close_button.addEventListener('click', function(e) {
+			utils.hide(block);
+			e.preventDefault();
+		}, false);
+
+		return {
+			print: function() {
+				content.innerHTML = app.getJSON();
+				utils.show(block);
+			},
+			hide: function() {
+				utils.hide(block);
+			}
+		};
+	})();
+
 	
     /* Edit selected area info */
 	var info = (function() {
@@ -724,6 +767,9 @@ function SummerHtmlImageMapCreator() {
 			href_attr = utils.id('href_attr'),
 			alt_attr = utils.id('alt_attr'),
 			title_attr = utils.id('title_attr'),
+			custom_attrs_frame = utils.id('custom_attrs'),
+			add_attr_button = utils.id('add_attr_button'),
+			add_attr_text = utils.id('add_attr_text'),
 			save_button = utils.id('save_details'),
 			close_button = form.querySelector('.close_button'),
 			sections = form.querySelectorAll('p'),
@@ -744,13 +790,68 @@ function SummerHtmlImageMapCreator() {
 			obj.href = href_attr.value;
 			obj.alt = alt_attr.value;
 			obj.title = title_attr.value;
+
+			utils.foreach(app.customAttributes, function(key) {
+				obj[key] = utils.id(customAttrId(key)).value;
+			});
 			
 			obj.href ? obj.with_href() : obj.without_href();
 			
 			changedReset();
 				
 			e.preventDefault();
-		};
+		}
+
+		function addAttr(e) {
+			var key = add_attr_text.value;
+			if (key == null || key == "") {
+				return;
+			}
+
+			if (app.customAttributes.indexOf(key) > -1) {
+				return;
+			}
+
+			app.customAttributes.push(key);
+			layoutCustomAttrs();
+			add_attr_text.value = "";
+
+		}
+
+		function customAttrId(key) {
+			return "custom_attr_" + key;
+		}
+
+		function layoutCustomAttrs(object) {
+			custom_attrs_frame.innerHTML = "";
+			utils.foreach(app.customAttributes, function(key, i) {
+
+				var value = "";
+				if (object != null) {
+					value = object[key] || "";
+				}
+
+				var id = customAttrId(key);
+				var div  = document.createElement("p");
+
+				var label = document.createElement("label");
+				label.setAttribute("for", id);
+				label.textContent = key;
+
+				var input = document.createElement("input");
+				input.setAttribute("type", "text");
+				input.id = id;
+				input.value = value;
+
+				input.addEventListener('keydown', function(e) {e.stopPropagation()}, false);
+				input.addEventListener('change', change, false);
+
+				div.appendChild(label);
+				div.appendChild(input);
+				custom_attrs_frame.appendChild(div);
+			});
+			sections = form.querySelectorAll('p');
+		}
 		
 		function unload() {
 			obj = null;
@@ -781,10 +882,12 @@ function SummerHtmlImageMapCreator() {
 		}
 		
 		save_button.addEventListener('click', save, false);
-		
+		add_attr_button.addEventListener('click', addAttr, false);
+
 		href_attr.addEventListener('keydown', function(e) { e.stopPropagation(); }, false);
 		alt_attr.addEventListener('keydown', function(e) { e.stopPropagation(); }, false);
 		title_attr.addEventListener('keydown', function(e) { e.stopPropagation(); }, false);
+		add_attr_text.addEventListener('keydown', function(e) {e.stopPropagation(); }, false);
 		
 		href_attr.addEventListener('change', change, false);
 		alt_attr.addEventListener('change', change, false);
@@ -808,6 +911,7 @@ function SummerHtmlImageMapCreator() {
 				href_attr.value = object.href ? object.href : '';
 				alt_attr.value = object.alt ? object.alt : '';
 				title_attr.value = object.title ? object.title : '';
+				layoutCustomAttrs(object);
 				utils.show(form);
 				if (new_x && new_y) {
 					x = new_x;
@@ -1182,6 +1286,7 @@ function SummerHtmlImageMapCreator() {
 			clear = utils.id('clear'),
 			from_html = utils.id('from_html'),
 			to_html = utils.id('to_html'),
+			to_json = utils.id('to_json'),
 			preview = utils.id('preview'),
 			new_image = utils.id('new_image'),
 			show_help = utils.id('show_help');
@@ -1253,6 +1358,12 @@ function SummerHtmlImageMapCreator() {
 			
 			e.preventDefault();
 		}
+
+		function onToJsonButtonClick(e) {
+			info.unload();
+			codeJson.print();
+			e.preventDefault();
+		}
 		
 		function onPreviewButtonClick(e) {
 			if (app.getMode() === 'preview') {
@@ -1318,6 +1429,7 @@ function SummerHtmlImageMapCreator() {
 		clear.addEventListener('click', onClearButtonClick, false);
 		from_html.addEventListener('click', onFromHtmlButtonClick, false);
 		to_html.addEventListener('click', onToHtmlButtonClick, false);
+		to_json.addEventListener('click', onToJsonButtonClick, false);
 		preview.addEventListener('click', onPreviewButtonClick, false);
 		edit.addEventListener('click', onEditButtonClick, false);
 		new_image.addEventListener('click', onNewImageButtonClick, false);
@@ -1732,7 +1844,7 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Rect.prototype.toJSON = function() {
-		return {
+		var jsonObject = {
 			type   : 'rect',
 			coords : [
 				this.params.x,
@@ -1743,7 +1855,12 @@ function SummerHtmlImageMapCreator() {
 			href   : this.href,
 			alt    : this.alt,
 			title  : this.title
+		};
+		for (var i = 0; i < app.customAttributes.length; i++) {
+			var key = app.customAttributes[i];
+			jsonObject[key] = this[key];
 		}
+		return jsonObject;
 	};
 
 
@@ -1988,7 +2105,7 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Circle.prototype.toJSON = function() {
-		return {
+		var jsonObject = {
 			type   : 'circle',
 			coords : [
 				this.params.cx,
@@ -1998,7 +2115,12 @@ function SummerHtmlImageMapCreator() {
 			href   : this.href,
 			alt    : this.alt,
 			title  : this.title
+		};
+		for (var i = 0; i < app.customAttributes.length; i++) {
+			var key = app.customAttributes[i];
+			jsonObject[key] = this[key];
 		}
+		return jsonObject;
 	};
 	
 		
@@ -2162,7 +2284,7 @@ function SummerHtmlImageMapCreator() {
 					.setIsDraw(false)
 					.resetNewArea();
 			}
-		};
+		}
 		e.stopPropagation();
 	};
 	
@@ -2227,13 +2349,13 @@ function SummerHtmlImageMapCreator() {
 		utils.addClass(this.polygon, 'with_href');
 		
 		return this;
-	}
+	};
 	
 	Polygon.prototype.without_href = function() {
 		utils.removeClass(this.polygon, 'with_href');
 		
 		return this;
-	}
+	};
 
 	Polygon.prototype.toString = function() { //to html map area code
 		for (var i = 0, count = this.params.length, str = ''; i < count; i++) {
@@ -2285,15 +2407,20 @@ function SummerHtmlImageMapCreator() {
 	};
 	
 	Polygon.prototype.toJSON = function() {
-		return {
+		var jsonObject = {
 			type   : 'polygon',
 			coords : this.params,
 			href   : this.href,
 			alt    : this.alt,
 			title  : this.title
+		};
+		for (var i = 0; i < app.customAttributes.length; i++) {
+			var key = app.customAttributes[i];
+			jsonObject[key] = this[key];
 		}
+		return jsonObject;
 	};
 	
-};
+}
 
 document.addEventListener("DOMContentLoaded", SummerHtmlImageMapCreator, false);
