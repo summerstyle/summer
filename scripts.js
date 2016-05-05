@@ -815,6 +815,7 @@ function SummerHtmlImageMapCreator() {
 			app.customAttributes.push(key);
 			layoutCustomAttrs();
 			add_attr_text.value = "";
+			e.preventDefault();
 
 		}
 
@@ -822,12 +823,12 @@ function SummerHtmlImageMapCreator() {
 			return "custom_attr_" + key;
 		}
 
-		function layoutCustomAttrs(object) {
+		function layoutCustomAttrs() {
 			custom_attrs_frame.innerHTML = "";
 			utils.foreach(app.customAttributes, function(key, i) {
 
 				var value = "";
-				if (object != null) {
+				if (obj != null) {
 					value = object[key] || "";
 				}
 
@@ -911,7 +912,7 @@ function SummerHtmlImageMapCreator() {
 				href_attr.value = object.href ? object.href : '';
 				alt_attr.value = object.alt ? object.alt : '';
 				title_attr.value = object.title ? object.title : '';
-				layoutCustomAttrs(object);
+				layoutCustomAttrs();
 				utils.show(form);
 				if (new_x && new_y) {
 					x = new_x;
