@@ -732,14 +732,16 @@ function SummerHtmlImageMapCreator() {
 				json += '\n]';
 				return json;
 			},
-            reservedAttributes: ["type", "alt", "href", "coords", "title"],
+            reservedAttributes: ["type", "shape", "alt", "href", "coords", "title"],
 			customAttributes: custom_attrs,
-            addCustomAttributes: function(attrs) {
+			addCustomAttribute: function(attr) {
+				if (custom_attrs.indexOf(attr) == -1 && this.reservedAttributes.indexOf(attr) == -1) {
+					custom_attrs.push(attr);
+				}
+			},
+            addAllCustomAttributes: function(attrs) {
                 for (var i = 0; i < attrs.length; i++) {
-                    var attr = attrs[i];
-                    if (custom_attrs.indexOf(attr) == -1) {
-                        custom_attrs.push(attr);
-                    }
+                    this.addCustomAttribute(attrs[i]);
                 }
             }
 		};
@@ -1003,97 +1005,69 @@ function SummerHtmlImageMapCreator() {
 			regexp_href = / href="([\S\s]+?)"/,
 			regexp_alt = / alt="([\S\s]+?)"/,
 			regexp_title = / title="([\S\s]+?)"/;
-		
+
+
+		function createShape(type, params) {
+			switch (type) {
+				case 'rect':
+					if (params.coords.length == 4) {
+						Rect.createFromSaved(params);
+					}
+					break;
+				case 'circle':
+					if (params.coords.length == 3) {
+						Circle.createFromSaved(params);
+					}
+					break;
+				case 'poly':
+					console.log(params.coords.length);
+					if (params.coords.length >= 6 && params.coords.length % 2 == 0) {
+						Polygon.createFromSaved(params);
+					}
+					break;
+			}
+		}
+
 		function parseHTML(str) {
-			var result_area,
-				result_href,
-				result_alt,
-				result_title,
-				type,
-				coords,
+			var params,
 				area,
 				href,
-				alt,
-				title,
 				success = false;
-			
-			if (str) {
-				result_area = regexp_area.exec(str);
-				
-				while (result_area) {
-					success = true;
-					
-					area = result_area[0];
-					
-					type = result_area[1];
-					coords = result_area[2].split(/ ?, ?/);
-					
-					result_href = regexp_href.exec(area);
-					if (result_href) {
-						href = result_href[1];
-					} else {
-						href = '';
-					}
-					
-					result_alt = regexp_alt.exec(area);
-					if (result_alt) {
-						alt = result_alt[1];
-					} else {
-						alt = '';
-					}
-					
-					result_title = regexp_title.exec(area);
-					if (result_title) {
-						title = result_title[1];
-					} else {
-						title = '';
-					}
-					
-					for (var i = 0, len = coords.length; i < len; i++) {
-						coords[i] = Number(coords[i]);
-					}
-					
-					switch (type) {
-						case 'rect':
-							if (coords.length === 4) {
-								Rect.createFromSaved({
-									coords : coords,
-									href   : href,
-									alt    : alt,
-									title  : title
-								});
-							}
-							break;
-						
-						case 'circle':
-							if (coords.length === 3) {
-								Circle.createFromSaved({
-									coords : coords,
-									href   : href,
-									alt    : alt,
-									title  : title
-								});
-							}
-							break;
-						
-						case 'poly':
-							if (coords.length >= 6 && coords.length % 2 === 0) {
-								Polygon.createFromSaved({
-									coords : coords,
-									href   : href,
-									alt    : alt,
-									title  : title
-								});
-							}
-							break;
-					}
-					
-					result_area = regexp_area.exec(str);
+
+			if (!str) {
+				return;
+			}
+
+			var tempDiv = document.createElement('div');
+			tempDiv.style.display = 'none';
+
+			tempDiv.innerHTML = str;
+
+			var areas = tempDiv.getElementsByTagName('area');
+
+			for (var i = areas.length - 1; i >= 0; i--) {
+				area = areas[i];
+				for (var j = 0; j < area.attributes.length; j++) {
+					var attr = area.attributes[j].nodeName;
+					app.addCustomAttribute(attr);
 				}
-				
-				if (success) {
-					hide();
-				}
+
+				params = {
+					coords: JSON.parse('[' + area.coords + ']'),
+					href: area.getAttribute('href'),
+					alt: area.alt,
+					title: area.title
+				};
+
+				utils.foreach(app.customAttributes, function(attr) {
+					params[attr] = area.getAttribute(attr);
+				});
+
+				createShape(area.shape, params);
+				success = true;
+			}
+			if (success) {
+				hide();
 			}
 		}
 
@@ -1118,7 +1092,7 @@ function SummerHtmlImageMapCreator() {
                     customAttrs.push(attr);
                 }
             }
-            app.addCustomAttributes(customAttrs);
+            app.addAllCustomAttributes(customAttrs);
 
             for (var i = objectArray.length - 1; i >= 0; i--) {
                 var object = objectArray[i];
@@ -1142,24 +1116,7 @@ function SummerHtmlImageMapCreator() {
                     params[attr] = object[attr];
                 }
 
-                switch (object.type) {
-                    case 'rect':
-                        if (params.coords.length == 4) {
-                            Rect.createFromSaved(params);
-                        }
-                        break;
-                    case 'circle':
-                        if (params.coords.length == 3) {
-                            Circle.createFromSaved(params);
-                        }
-                        break;
-                    case 'poly':
-                        console.log(params.coords.length);
-                        if (params.coords.length >= 6 && params.coords.length % 2 == 0) {
-                            Polygon.createFromSaved(params);
-                        }
-                        break;
-                }
+				createShape(object.type, params);
             }
 
             hide();
