@@ -593,6 +593,7 @@ function SummerHtmlImageMapCreator() {
 				}
 				codeHtml.hide();
 				info.unload();
+                custom_attrs = [];
 				return this;
 			},
 			removeObject : function(obj) {
