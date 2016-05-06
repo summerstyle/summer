@@ -1128,8 +1128,9 @@ function SummerHtmlImageMapCreator() {
                 console.log(coords);
 
                 for (var j = 0; j < customAttrs.length; j++) {
-                    var attr = customAttrs[i];
+                    var attr = customAttrs[j];
                     params[attr] = object[attr];
+                    console.log(object[attr]);
                 }
 
                 switch (object.type) {
