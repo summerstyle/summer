@@ -263,7 +263,7 @@ function SummerHtmlImageMapCreator() {
 		/* Add click event for svg */
 		function onSvgClick(e) {
 			if (mode === 'drawing' && !is_draw && shape) {
-				code.hide();
+				codeHtml.hide();
 				switch (shape) {
 				case 'rect':
 					new_area = new Rect(utils.rightX(e.pageX), utils.rightY(e.pageY));
@@ -557,7 +557,7 @@ function SummerHtmlImageMapCreator() {
 					app.setShape(null);
 					utils.hide(svg);
 					map.innerHTML = app.getHTMLCode();
-					code.print();
+					codeHtml.print();
 					return this;
 				}
 			})(),
@@ -591,7 +591,7 @@ function SummerHtmlImageMapCreator() {
 				while(svg.childNodes[0]) {
 					svg.removeChild(svg.childNodes[0]);
 				}
-				code.hide();
+				codeHtml.hide();
 				info.unload();
 				return this;
 			},
@@ -705,13 +705,12 @@ function SummerHtmlImageMapCreator() {
 					if (!objects.length) {
 						return '0 objects';
 					}
-					html_code += utils.encode('<img src="' + filename + '" alt="" usemap="#map" />') +
-						'<br />' + utils.encode('<map name="map">') + '<br />';
+					html_code += '<img src="' + filename + '" alt="" usemap="#map" />\n' +
+						'<map name="map">\n';
 					utils.foreachReverse(objects, function(x) {
-						console.log(x.toString());
-						html_code += '&nbsp;&nbsp;&nbsp;&nbsp;' + utils.encode(x.toString()) + '<br />';
+						html_code += '\t' + x.toString() + '\n';
 					});
-					html_code += utils.encode('</map>');
+					html_code += '</map>';
 				} else {
 					utils.foreachReverse(objects, function(x) {
 						html_code += x.toString();
@@ -720,16 +719,16 @@ function SummerHtmlImageMapCreator() {
 				return html_code;
 			},
 			getJSON : function() {
-                var tab = '&nbsp;&nbsp;&nbsp;&nbsp;';
-				var json = '[<br/>';
+                var tab = '\t';
+				var json = '[\n';
 				for (var i = objects.length - 1; i >= 0; i--) {
 					var object = objects[i];
 					if (i != objects.length - 1) {
-						json += ",<br/>";
+						json += ",\n";
 					}
 					json += tab + utils.encode(JSON.stringify(object.toJSON()));
 				}
-				json += '<br/>]';
+				json += '\n]';
 				return json;
 			},
             reservedAttributes: ["type", "alt", "href", "coords", "title"],
@@ -772,7 +771,7 @@ function SummerHtmlImageMapCreator() {
 	})();
 	
 	/* For html code of created map */
-	var code = (function(){
+	var codeHtml = (function(){
 		var block = utils.id('code'),
 			content = utils.id('code_content'),
 			close_button = block.querySelector('.close_button');
@@ -784,8 +783,13 @@ function SummerHtmlImageMapCreator() {
 			
 		return {
 			print: function() {
-				content.innerHTML = app.getHTMLCode(true);
+                app.setMode(null)
+                    .setDefaultClass()
+                    .deselectAll();
+                utils.removeClass(utils.id('edit'), 'selected');
+				content.value = app.getHTMLCode(true);
 				utils.show(block);
+                content.select();
 			},
 			hide: function() {
 				utils.hide(block);
@@ -807,8 +811,13 @@ function SummerHtmlImageMapCreator() {
 
 		return {
 			print: function() {
-				content.innerHTML = app.getJSON();
+                app.setMode(null)
+                    .setDefaultClass()
+                    .deselectAll();
+                utils.removeClass(utils.id('edit'), 'selected');
+				content.value = app.getJSON();
 				utils.show(block);
+                content.select();
 			},
 			hide: function() {
 				utils.hide(block);
@@ -1130,7 +1139,6 @@ function SummerHtmlImageMapCreator() {
                 for (var j = 0; j < customAttrs.length; j++) {
                     var attr = customAttrs[j];
                     params[attr] = object[attr];
-                    console.log(object[attr]);
                 }
 
                 switch (object.type) {
@@ -1399,7 +1407,7 @@ function SummerHtmlImageMapCreator() {
 			},
 			hideLoadIndicator : function() {
 				utils.hide(loading_indicator);
-				
+
 				return this;
 			}
 		};
@@ -1486,7 +1494,7 @@ function SummerHtmlImageMapCreator() {
 		function onToHtmlButtonClick(e) {
 			// Generate html code only
 			info.unload();
-			code.print();
+			codeHtml.print();
 			
 			e.preventDefault();
 		}
@@ -1994,7 +2002,7 @@ function SummerHtmlImageMapCreator() {
 		};
 		for (var i = 0; i < app.customAttributes.length; i++) {
 			var key = app.customAttributes[i];
-			jsonObject[key] = this[key];
+			jsonObject[key] = this[key] || "";
 		}
 		return jsonObject;
 	};
@@ -2258,7 +2266,7 @@ function SummerHtmlImageMapCreator() {
 		};
 		for (var i = 0; i < app.customAttributes.length; i++) {
 			var key = app.customAttributes[i];
-			jsonObject[key] = this[key];
+			jsonObject[key] = this[key] || "";
 		}
 		return jsonObject;
 	};
@@ -2558,7 +2566,7 @@ function SummerHtmlImageMapCreator() {
 		};
 		for (var i = 0; i < app.customAttributes.length; i++) {
 			var key = app.customAttributes[i];
-			jsonObject[key] = this[key];
+			jsonObject[key] = this[key] || "";
 		}
 		return jsonObject;
 	};
