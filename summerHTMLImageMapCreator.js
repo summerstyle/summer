@@ -34,6 +34,8 @@ var summerHtmlImageMapCreator = (function() {
          * @returns {Object} - object with recalculated coordinates, e.g. {x: 100, y: 200}
          */ 
         getRightCoords : function(x, y) {
+            app.recalcOffsetValues();
+
             return {
                 x : x - app.getOffset('x'),
                 y : y - app.getOffset('y')
@@ -1015,9 +1017,19 @@ var summerHtmlImageMapCreator = (function() {
      * @returns {Area} - a copy of original area
      */
     Area.copy = function(originalArea) {
-        return Area.fromJSON(originalArea.toJSON()).move(10, 10).select();
+        return Area.fromJSON(JSON.parse(JSON.stringify(originalArea.toJSON()))).move(10, 10).select();
     };
 
+    /**
+     * Returns copy of original area, selected, but not moved
+     *
+     * @param originalArea {Area}
+     * @returns {Area} - a copy of original area
+     */
+    Area.plainCopy = function(originalArea) {
+        return Area.fromJSON(JSON.parse(JSON.stringify(originalArea.toJSON()))).select();
+    };
+    
     /* ---------- Constructors for real areas ---------- */
 
     /**
