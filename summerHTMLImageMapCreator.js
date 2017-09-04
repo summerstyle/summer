@@ -34,6 +34,8 @@ var summerHtmlImageMapCreator = (function() {
          * @returns {Object} - object with recalculated coordinates, e.g. {x: 100, y: 200}
          */ 
         getRightCoords : function(x, y) {
+            app.recalcOffsetValues();
+
             return {
                 x : x - app.getOffset('x'),
                 y : y - app.getOffset('y')
