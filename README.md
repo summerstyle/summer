@@ -1,6 +1,6 @@
 Summer html image map creator
 =============================
-[http://github.com/summerstyle/summer] (http://github.com/summerstyle/summer)
+[http://github.com/summerstyle/summer](http://github.com/summerstyle/summer)
 
 Released under the MIT license
 
