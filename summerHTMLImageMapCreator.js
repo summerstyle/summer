@@ -2377,9 +2377,9 @@ var summerHtmlImageMapCreator = (function() {
         return {
             load : function(object, new_x, new_y) {
                 obj = object;
-                href_attr.value = object.href ? object.href : '';
-                alt_attr.value = object.alt ? object.alt : '';
-                title_attr.value = object.title ? object.title : '';
+                href_attr.value = object._attributes.href ? object._attributes.href : '';
+                alt_attr.value = object._attributes.alt ? object._attributes.alt : '';
+                title_attr.value = object._attributes.title ? object._attributes.title : '';
                 utils.show(form);
                 if (new_x && new_y) {
                     x = new_x;
