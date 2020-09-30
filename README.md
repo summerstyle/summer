@@ -1,4 +1,4 @@
-Summer html image map creator
+Summer html image map creator - An amazing project
 =============================
 [http://github.com/summerstyle/summer] (http://github.com/summerstyle/summer)
 
