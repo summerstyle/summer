@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Summer html image map creator</title>
+    <link href="main.css" type="text/css" rel="stylesheet" />
+    <meta charset="UTF-8" />
+    <!--
+        Summer html image map creator
+        http://github.com/summerstyle/summer
+        
+        Copyright 2016 Vera Lobacheva (http://iamvera.com)
+        Released under the MIT license
+    -->
+</head>
+<body>
+<noscript>
+    <div id="noscript">
+        Please, enable javascript in your browser
+    </div>
+</noscript>
+  
+<div id="wrapper">
+    <header id="header">
+        <h1 id="logo">
+            <a href="http://github.com/summerstyle/summer">
+                <img src="data:image/png;base64,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" alt="Summer html image map creator" />
+            </a>
+        </h1>
+        <nav id="nav" class="clearfix">
+            <ul>
+                <li id="save"><a href="#">save</a></li>
+                <li id="load"><a href="#">load</a></li>
+                <li id="from_html"><a href="#">from html</a></li>
+                <li id="rectangle"><a href="#">rectangle</a></li>
+                <li id="circle"><a href="#">circle</a></li>
+                <li id="polygon"><a href="#">polygon</a></li>
+                <li id="edit"><a href="#">edit</a></li>
+                <li id="to_html"><a href="#">to html</a></li>
+                <li id="preview"><a href="#">preview</a></li>
+                <li id="clear"><a href="#">clear</a></li>
+                <li id="new_image"><a href="#">new image</a></li>
+                <li id="show_help"><a href="#">?</a></li>
+            </ul>
+        </nav>
+        <div id="coords"></div>
+        <div id="debug"></div>
+    </header>
+    <div id="image_wrapper">
+        <div id="image">
+            <img src="" alt="#" id="img" />
+            <svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" id="svg"></svg>
+        </div>
+    </div>
+</div>
+
+<!-- For html image map code -->
+<div id="code">
+    <span class="close_button" title="close"></span>
+    <div id="code_content"></div>
+</div>
+
+<!-- Edit details block -->
+<form id="edit_details">
+    <h5>Attributes</h5>
+    <span class="close_button" title="close"></span>
+    <p>
+        <label for="href_attr">href</label>
+        <input type="text" id="href_attr" />
+    </p>
+    <p>
+        <label for="alt_attr">alt</label>
+        <input type="text" id="alt_attr" />
+    </p>
+    <p>
+        <label for="title_attr">title</label>
+        <input type="text" id="title_attr" />
+    </p>
+    <button id="save_details">Save</button>
+</form>
+
+<!-- From html block -->
+<div id="from_html_wrapper">
+    <form id="from_html_form">
+        <h5>Loading areas</h5>
+        <span class="close_button" title="close"></span>
+        <p>
+            <label for="code_input">Enter your html code:</label>
+            <textarea id="code_input"></textarea>
+        </p>
+        <button id="load_code_button">Load</button>
+    </form>
+</div>
+  
+<!-- Get image form -->
+<div id="get_image_wrapper">
+    <div id="get_image">
+        <span title="close" class="close_button"></span>
+        <div id="logo_get_image">
+            <a href="http://github.com/summerstyle/summer">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGcAAAAiCAYAAABC1McmAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAApjAAAKYwGDMomsAAAAB3RJTUUH3AkZCBYgoMzINwAACVFJREFUaN7tWW1wVNUZft5zN9nEQJCqqC0EKygYQ9y7iyEffKRTFfqnHT8mlWKro3+0VYbW1k6nzhirtf3RKmitY7+UqZ0WHK1aywgIAyVkE2Q/QtLI+ImAmlqJikGS7O55+oPd5d6zd5OVsIx29vzZPee973vOfd7vcwWFjvVQdefUfdFKWLrnUM8A2qBRGkUdMhax9oXaqf5q//dEZDkEswD406T3oPH48MHhO/vb+hMlGIszVD5CIBxY7j/d/5YouYfgZJ3SbYlEYmrqSOpLJDdB4Q7/DP+fSxCeYs8JdYRaaXEr5BhdJ/Xl8YXxF7P0baEzWMH3ASCRSEztXdT7YQnKU+Q5tHh3RjEAUH64vNv1QBmmZJ8lJ5VgPJXKAec756mpqZkuuuJ16b9v9w30vVOC8RQqR0Q+cCkHqbbM//pN9adBcC2Ig9C4sVS1neKcY3faT4uSKx1LI1rrhfHm+O4SZN6jtb3V+uiKj5aLyOUALiI4CGBj7EBszYkasKdygjuDC2FhhyuUkYdJLos3x8NePI3rGytGakY+Fogv63GJ1IU9i3peBQC7y+4QSIuD5f5oY/T2rEEYdJJrVEo9Qx/vABACUEZwQzKRvLV3Ue+HdqddIyK/hmAZgE+g8fTw6PAP+1v7j+QYWxFlA8AlOy65wPJZf4fgYg/yz6ON0TszrUnF6RWDTqKmXqK0Op8WVwKYCyCaGE1c27e476BnWIu2RDtIrjFCXbUStTnUEWr14jk64+g8p2IIDvZs6XkNAGrX15alQXDGymyRkaYH3VYjNi1uBfA1ANMATBXICp/le7h+e/15omQ3BNcAmARgGhRu9pf778rp1YooGwAC2wOzlU9tzyqGOMgk55O8NT2/PvNsRXXFpbneIffCwmMCsQVSKZCWcl/5j8fsc0YOjPyI5A5DUpX26Q2BjsBluclLmQDsQjsIABXnVswTSIXLYhI6q5zKcyrrBFJp7LUYgiOgOySIkqstv7WO4BdIfmLQrjTPVUzZWA+l/GqtiJzr8MrrYwtjEQ29K700zbHvAg/lvKqpLyP4esFNaH9bf0IlVBvJAUNYpfjkuVA4VGe2R64wqHm8/LbchyL5n/i2+P6sosp0Q07FSD45uHfwTGgsN0h+gUxXKXWhpm4xqszpppxiyg7WBL8NoNkhd12sObYVABTV3DTfgENGg3GO30WbojfFm+JbhLI2UwHrhF4zpnIAILI4MgBiBXjMA5wK0qKfDD0a8jkWQ8bG3Y5DLTD4uzNelZ43GEAMq4Raue+GfSMg3so5mMa9kZbIG4nRxKsuuZR3PSyzOLLbISR/YMj+rWPfJek/mzLPi7jPIlq2ZFNJU/Qeas4c3j/85fiS+GvjKgcAYs2xrSR/5vHSc1nHqwBg9obZ5SDmOelWwtrlCAkmQN2GuAUGEGsjiyMD6YY4YDz7QfnB8scAwFfmO8+Qu8/jFYoiO/jVoC0i9Q5jfCO+Mb4DAOp31l9MxRsIJnVSPwAA9V+pn+kKcccw3G1gvd95V6mclmCH7RvtsN1lh+0jdtjea4ftpQAwZdOUewC8nBMeFK8HgOrJ1XUiUuYgvRZpjRwCgMC2wBQQc/Mpp2FDw2QAtUYF82I+cEl2drV1Dafz3CzjSC4AiymbPi4zgN6MdtDutGssy/qrQCzRcnvPwp5+APD5fKaBDkY2R94cvwlthwSXBv8iIn8UkQUicpqIzAHwewDY1r4tRfJhD++5IC0lmNczfLjUeRUEgtaQ9VJmmpySnO+iA7C01e3YIzckHvfIWQbNBWAxZYtIyIDjQ7vT/qkoeQnENK318mhz9MF8eRfEbmdoz6sc+wp7BeR4ciR5GMANyWSy3lGNbffokmo8802Kzpc0K5SXI5dHDmeflZwk+W7kxchBAAhtDlUDuMhQ/C7HdJY7XWhXniiqbHKmwXsbFL5JzT8kk8m58eb434znG3KUM87wpcG9zmC8NdoUdX0OGHpvaF/V2VVm1TOYBiHgNFCXdSppzedVc56dM0mU/NLYuytjUalJqUuVKJflj3w0ssthvbMM3iyAgXDgOyJySxFluwwy1hSrygeyvdO+SkQWGp73UqF3a67EmBpKvZDTL0ypPMODf2/615U8hwaH+gEg0BmYD8DsiXozf6qmVd3mcaKufGEHxCv9y/o/cMzPd9FHjwEY6gi1KKjHAcwsomzXmLdj3unmWujRkM8O2/eJJU+ZtNHE6O6ClCMiVeM+6FcNHsvr0vxTXYo8q3Ju3Za6aSLyGw+e2VgPZe+0GyG4z6MHyQugEXZAYY3rjErV2B32ubT4MMFosWRD8DyIftdXFKvsJrQfCx+162vLAp2Bb7CeYRG5GRoPGOcY6Nva93ahnrPHtThZXe2cp2+i7zZeZq//gH9terLf6Ka7yk8rHwAwm+Qmw52/a9fYR8SSsMe3Cj06MhrJ9hFGfwSg23j+v65pOaPik3corBMe7yFOtmymeB/FrUwo/Mpear9nh+39/hr/UaXUMwSnC2Ux5Pj3r/QYtxjIKkdrfb8B4P3BzuDK0I5QQ3BncIWv2rfbmTxJDqRSqWsyZWfGgxxWaVE4IpRvCeVBjyqvIn019JBB2pO5XAy0BmpE5GzXYZNqlwHgnwy5vnRzd5sWrYslO9YS64LGXTlXPCJnisgMgVgA/pFMJpsjTZE+82ZAMH6+ySon3hx/Cho/IZjM3ABAYQ3L2A0LTxiK2ZgaTTXtadnz72zJ+nHyFwQfIXkIwBDJ55liY7Q5uinaHP0nye+TPEBwmGSfTumV6n21lOTF+aw3J4wSo4deP9TjOnyvupead4N4heBRgjGSV0Wbo4+YNwMnU3amYVRUQRDPkXwXxCjJAyTXUXNxtDH69d5FvW/OeXbOJIHUGjcDBX16cVUrdf+qm17mK7sFCpeBmAHBWUIZSl/K7dTQT/Rs7CnIJUujNP7/x6pVq3iy+ScqszTGuPicKLirV6+WErwTw1JM5tWrV8tYcy8FrFq1iqYyMmuF8I63bq55Kf5E9vHaI5/cfOcaiz7eWcZ6V88Xy/z3Wivk2RORUwhPobwT3edk4PJpefIp1Pd5cvti5MaJhuli5lvfZ0ExhYSEieaxT7PPePxjnWmi+xSsnHwHKrbneOWqQnPEiVaV+YAvlD5e3slgOZ7Mz1V1U8ySvFTuTwC4YoP3WVfO/wCLzJ7AgyybSQAAAABJRU5ErkJggg==" alt="Summer html image map creator" />
+            </a>
+        </div>
+        <div id="loading">Loading</div>
+        <div id="file_reader_support">
+            <label>Drag an image</label>
+            <div id="dropzone">
+                <span class="clear_button" title="clear">x</span> 
+                <img src="" alt="preview" id="sm_img" />
+            </div>
+            <b>or</b>
+        </div>
+        <label for="url">type a url</label>
+        <span id="url_wrapper">
+            <span class="clear_button" title="clear">x</span>
+            <input type="text" id="url" />
+        </span>
+        <button id="button">OK</button>
+    </div>
+</div>
+
+<!-- Help block -->
+<div id="overlay"></div>
+<div id="help">
+    <span class="close_button" title="close"></span>
+    <div class="txt">
+        <section>
+            <h2>Main</h2>
+            <p><span class="key">F5</span> &mdash; reload the page and display the form for loading image again</p>
+            <p><span class="key">S</span> &mdash; save map params in localStorage</p>
+        </section>
+        <section>
+            <h2>Drawing mode (rectangle / circle / polygon)</h2>
+            <p><span class="key">ENTER</span> &mdash; stop polygon drawing (or click on first helper)</p>
+            <p><span class="key">ESC</span> &mdash; cancel drawing of a new area</p>
+            <p><span class="key">SHIFT</span> &mdash; square drawing in case of a rectangle and right angle drawing in case of a polygon</p>
+        </section>
+        <section>
+            <h2>Editing mode</h2>
+            <p><span class="key">DELETE</span> &mdash; remove a selected area</p>
+            <p><span class="key">ESC</span> &mdash; cancel editing of a selected area</p>
+            <p><span class="key">SHIFT</span> &mdash; edit and save proportions for rectangle</p>
+            <p><span class="key">I</span> &mdash; edit attributes of a selected area (or dblclick on an area)</p>
+            <p><span class="key">CTRL</span> + <span class="key">C</span> &mdash; a copy of the selected area</p>
+            <p><span class="key">&uarr;</span> &mdash; move a selected area up</p>
+            <p><span class="key">&darr;</span> &mdash; move a selected area down</p>
+            <p><span class="key">&larr;</span> &mdash; move a selected area to the left</p>
+            <p><span class="key">&rarr;</span> &mdash; move a selected area to the right</p>
+        </section>
+    </div>
+    <footer>
+        <a href="http://github.com/summerstyle/summer">Summer html image map creator 0.5</a><br />
+        &copy; 2016 Vera Lobatcheva<br />
+        MIT License
+    </footer>
+</div>
+
+<script type="text/javascript" src="summerHTMLImageMapCreator.js"></script>
+</body>
+</html>
